@@ -1,5 +1,5 @@
 // Browser Web Push Notification Utility for Task Buddy
-// Uses Service Worker for background notifications on Android PWA
+// Sends messages to Service Worker which shows the actual notification
 
 export const isNotificationSupported = (): boolean => {
   return typeof window !== 'undefined' && 'Notification' in window;
@@ -25,7 +25,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   }
 };
 
-// Register Service Worker for background push notifications
+// Register Service Worker
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if (!isServiceWorkerSupported()) return null;
 
@@ -41,7 +41,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
   }
 };
 
-// Register periodic background sync (for 5-8 hour check-in reminders)
+// Register periodic background sync
 export const registerPeriodicSync = async () => {
   if (!isServiceWorkerSupported()) return;
 
@@ -65,45 +65,42 @@ export const registerPeriodicSync = async () => {
   }
 };
 
-// Send a LOUD notification via Service Worker (works in background on Android PWA)
-export const sendPushNotification = async (title: string, options?: NotificationOptions & { tag?: string }) => {
+// Send notification by posting a message to the Service Worker
+// The SW shows the notification from its own context — this avoids
+// Chrome Android's "tap to copy link" silent notification bug
+export const sendPushNotification = async (title: string, options?: { body?: string; tag?: string }) => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') {
     return;
   }
 
-  // Force loud notification options — our overrides go AFTER the spread
-  // so they always win even if caller passes silent:true
-  const baseOptions = {
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
-    ...options,
-  };
-
-  const loudOptions = {
-    ...baseOptions,
-    silent: false as const,
-    requireInteraction: true,
-  };
-
   try {
-    // Prefer Service Worker notification (works in background on Android)
     if (isServiceWorkerSupported()) {
       const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(title, loudOptions);
+
+      if (registration.active) {
+        // Post message to SW — it will call showNotification from its own context
+        registration.active.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          title,
+          options: {
+            body: options?.body || '',
+            tag: options?.tag || 'task-buddy-' + Date.now(),
+          },
+        });
+      }
     } else {
-      // Fallback to basic Notification API (foreground only)
-      const notification = new Notification(title, loudOptions);
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
+      // Last resort fallback — basic Notification API (foreground only)
+      new Notification(title, {
+        body: options?.body || '',
+        icon: '/favicon.svg',
+      });
     }
   } catch (e) {
     console.error('Error triggering notification:', e);
   }
 };
 
-// Periodic Check-in Notification (Every ~6 hours, fallback for no periodic sync)
+// Periodic Check-in Notification (Every ~6 hours fallback)
 export const checkPeriodicAppReminder = () => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') return;
 
@@ -126,7 +123,6 @@ export const checkPeriodicAppReminder = () => {
 export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: string; due_date?: string | null; is_completed: boolean }>) => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') return;
 
-  // Run periodic 5-8 hour check-in reminder
   checkPeriodicAppReminder();
 
   const now = new Date();
@@ -145,7 +141,7 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 2 * 60 * 60 * 1000) {
         const timeFormatted = dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        sendPushNotification(`⏰ Upcoming Task Reminder`, {
+        sendPushNotification('⏰ Upcoming Task Reminder', {
           body: `"${task.title}" is due at ${timeFormatted} (in ${Math.ceil(minutesDiff)} minutes)!`,
           tag: `task-reminder-${task.id}`,
         });
@@ -157,7 +153,7 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
     if (minutesDiff < 0 && Math.abs(minutesDiff) <= 120) {
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 4 * 60 * 60 * 1000) {
-        sendPushNotification(`🚨 Overdue Task Alert`, {
+        sendPushNotification('🚨 Overdue Task Alert', {
           body: `"${task.title}" was due recently. Take a moment to complete it!`,
           tag: `task-overdue-${task.id}`,
         });

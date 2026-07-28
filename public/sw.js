@@ -1,7 +1,7 @@
 // Service Worker for Task Buddy PWA
 // Handles background push notifications and offline caching
 
-const CACHE_NAME = 'task-buddy-v2';
+const CACHE_NAME = 'task-buddy-v3';
 const OFFLINE_URLS = ['/'];
 
 // Install: pre-cache the app shell
@@ -28,7 +28,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: serve from cache with network fallback (for offline support)
+// Fetch: serve from cache with network fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -51,7 +51,36 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification received
+// Listen for messages from the app to show notifications
+// This is the proper way — the SW shows the notification from its own context
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body: options.body || '',
+        icon: '/favicon.svg',
+        badge: '/favicon.svg',
+        tag: options.tag || 'task-buddy-' + Date.now(),
+        renotify: true,
+        requireInteraction: true,
+        silent: false,
+        vibrate: [300, 100, 300, 100, 300],
+        data: { url: '/dashboard' },
+        actions: [
+          { action: 'open', title: 'Open App' },
+          { action: 'dismiss', title: 'Dismiss' },
+        ],
+        ...options,
+        // Force these after spread so they can't be overridden
+        silent: false,
+        requireInteraction: true,
+      })
+    );
+  }
+});
+
+// Push notification received from server
 self.addEventListener('push', (event) => {
   let data = { title: '📌 Task Buddy', body: 'Check your pending tasks!' };
 
@@ -63,23 +92,22 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  const options = {
-    body: data.body,
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
-    tag: data.tag || 'task-buddy-notification',
-    renotify: true,
-    requireInteraction: true,
-    silent: false,
-    vibrate: [300, 100, 300, 100, 300],
-    actions: [
-      { action: 'open', title: '📋 Open Task Buddy' },
-      { action: 'dismiss', title: 'Dismiss' },
-    ],
-  };
-
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/favicon.svg',
+      badge: '/favicon.svg',
+      tag: data.tag || 'task-buddy-push',
+      renotify: true,
+      requireInteraction: true,
+      silent: false,
+      vibrate: [300, 100, 300, 100, 300],
+      data: { url: '/dashboard' },
+      actions: [
+        { action: 'open', title: 'Open App' },
+        { action: 'dismiss', title: 'Dismiss' },
+      ],
+    })
   );
 });
 
@@ -101,7 +129,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Periodic Background Sync (fires when connectivity is available)
+// Periodic Background Sync
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'task-buddy-checkin') {
     event.waitUntil(
@@ -114,6 +142,7 @@ self.addEventListener('periodicsync', (event) => {
         requireInteraction: true,
         silent: false,
         vibrate: [300, 100, 300, 100, 300],
+        data: { url: '/dashboard' },
       })
     );
   }
