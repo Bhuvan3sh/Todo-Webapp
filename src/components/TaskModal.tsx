@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PriorityLevel } from '../types';
-import { X, Save, CheckSquare, Flag, Calendar } from 'lucide-react';
+import { X, Save, CheckSquare, Flag, Clock } from 'lucide-react';
+
+const formatForDateTimeInput = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => (n < 10 ? '0' + n : n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 export const TaskModal: React.FC = () => {
   const {
@@ -27,11 +35,7 @@ export const TaskModal: React.FC = () => {
       setTitle(editingTask.title);
       setDescription(editingTask.description || '');
       setPriority(editingTask.priority);
-      setDueDate(
-        editingTask.due_date
-          ? new Date(editingTask.due_date).toISOString().split('T')[0]
-          : ''
-      );
+      setDueDate(formatForDateTimeInput(editingTask.due_date));
     } else {
       setListId(state.activeListId || state.lists[0]?.id || '');
       setTitle('');
@@ -176,10 +180,10 @@ export const TaskModal: React.FC = () => {
 
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-[#6C63FF]" /> Due Date
+                <Clock className="w-3.5 h-3.5 text-[#6C63FF]" /> Due Date & Time
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 className="w-full px-3 py-2 rounded-neu-btn neu-sunken text-sm text-gray-800"

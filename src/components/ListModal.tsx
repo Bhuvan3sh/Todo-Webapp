@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Save, FolderPlus, Palette } from 'lucide-react';
+import { X, Save, FolderPlus, Palette, Clock } from 'lucide-react';
 
 const PRESET_COLORS = [
   '#6C63FF', // Neuro Purple
@@ -10,6 +10,14 @@ const PRESET_COLORS = [
   '#EC4899', // Pink
   '#3B82F6', // Blue
 ];
+
+const formatForDateTimeInput = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => (n < 10 ? '0' + n : n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 export const ListModal: React.FC = () => {
   const {
@@ -31,11 +39,7 @@ export const ListModal: React.FC = () => {
     if (editingList) {
       setTitle(editingList.title);
       setDescription(editingList.description || '');
-      setDeadline(
-        editingList.deadline
-          ? new Date(editingList.deadline).toISOString().split('T')[0]
-          : ''
-      );
+      setDeadline(formatForDateTimeInput(editingList.deadline));
       setColor(editingList.color || '#6C63FF');
     } else {
       setTitle('');
@@ -139,11 +143,11 @@ export const ListModal: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                Target Deadline
+              <label className="block text-xs font-medium text-gray-600 mb-1.5 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-[#6C63FF]" /> Target Deadline & Time
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full px-3 py-2 rounded-neu-btn neu-sunken text-sm text-gray-800"

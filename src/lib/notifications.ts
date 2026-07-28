@@ -41,9 +41,32 @@ export const sendPushNotification = (title: string, options?: NotificationOption
   }
 };
 
+// Periodic Check-in Notification (Every 5 to 8 hours)
+export const checkPeriodicAppReminder = () => {
+  if (!isNotificationSupported() || Notification.permission !== 'granted') return;
+
+  const PERIODIC_KEY = 'task_buddy_last_periodic_reminder';
+  const lastReminder = localStorage.getItem(PERIODIC_KEY);
+  const now = Date.now();
+
+  // 6 hours in milliseconds (21,600,000 ms)
+  const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+
+  if (!lastReminder || now - parseInt(lastReminder, 10) >= SIX_HOURS_MS) {
+    sendPushNotification('📌 Task Buddy Check-in', {
+      body: 'Take a quick moment to review your pending tasks and keep your momentum going today! 🚀',
+      tag: 'periodic-app-reminder',
+    });
+    localStorage.setItem(PERIODIC_KEY, now.toString());
+  }
+};
+
 // Check for upcoming or overdue tasks and send reminders
 export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: string; due_date?: string | null; is_completed: boolean }>) => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') return;
+
+  // Run periodic 5-8 hour check-in reminder
+  checkPeriodicAppReminder();
 
   const now = new Date();
   const notifiedTasksKey = 'task_buddy_notified_tasks';
@@ -60,8 +83,9 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
     if (minutesDiff > 0 && minutesDiff <= 30) {
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 2 * 60 * 60 * 1000) {
+        const timeFormatted = dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         sendPushNotification(`⏰ Upcoming Task Reminder`, {
-          body: `"${task.title}" is due in ${Math.ceil(minutesDiff)} minutes!`,
+          body: `"${task.title}" is due at ${timeFormatted} (in ${Math.ceil(minutesDiff)} minutes)!`,
           tag: `task-reminder-${task.id}`,
         });
         notifiedTasks[task.id] = Date.now();

@@ -7,6 +7,7 @@ import {
   GripVertical,
   Check,
   Calendar,
+  Clock,
   Edit2,
   Trash2,
   Save,
@@ -17,6 +18,30 @@ interface TaskItemProps {
   task: Task;
 }
 
+const formatForDateTimeInput = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => (n < 10 ? '0' + n : n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+const formatDueDateDisplay = (dateStr?: string | null) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  
+  const dateFormatted = d.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
+  const timeFormatted = d.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `${dateFormatted} at ${timeFormatted}`;
+};
+
 export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const { updateTask, deleteTask } = useApp();
   const [isEditingInline, setIsEditingInline] = useState(false);
@@ -26,7 +51,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const [inlineDesc, setInlineDesc] = useState(task.description || '');
   const [inlinePriority, setInlinePriority] = useState(task.priority);
   const [inlineDueDate, setInlineDueDate] = useState(
-    task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : ''
+    formatForDateTimeInput(task.due_date)
   );
 
   const {
@@ -131,7 +156,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             className="w-full px-3 py-1.5 rounded-neu-btn neu-sunken text-xs text-gray-800"
           />
 
-          <div className="flex items-center justify-between gap-3 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center space-x-2">
               <label className="text-gray-500 font-medium">Priority:</label>
               <select
@@ -146,9 +171,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <label className="text-gray-500 font-medium">Due Date:</label>
+              <label className="text-gray-500 font-medium">Due Date & Time:</label>
               <input
-                type="date"
+                type="datetime-local"
                 value={inlineDueDate}
                 onChange={(e) => setInlineDueDate(e.target.value)}
                 className="px-2 py-1 rounded-neu-btn neu-sunken text-xs"
@@ -203,7 +228,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             {/* Actions (Edit & Delete) */}
             <div className="flex items-center space-x-1 flex-shrink-0">
               <button
-                onClick={() => setIsEditingInline(true)}
+                onClick={() => {
+                  setInlineTitle(task.title);
+                  setInlineDesc(task.description || '');
+                  setInlinePriority(task.priority);
+                  setInlineDueDate(formatForDateTimeInput(task.due_date));
+                  setIsEditingInline(true);
+                }}
                 className="p-1.5 text-gray-400 hover:text-[#6C63FF] transition-colors"
                 title="Edit Task"
               >
@@ -227,7 +258,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             </div>
           )}
 
-          {/* Bottom Row: Priority & Due Date Badges */}
+          {/* Bottom Row: Priority & Due Date + Time Badges */}
           <div className="pl-9 pt-0.5 flex flex-wrap items-center gap-2">
             <span
               className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${
@@ -249,11 +280,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                     : 'text-gray-600 bg-gray-200/60 border border-gray-300/40'
                 }`}
               >
-                <Calendar className="w-3 h-3" />
-                {new Date(task.due_date).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                <Clock className="w-3 h-3 text-[#6C63FF]" />
+                {formatDueDateDisplay(task.due_date)}
               </span>
             )}
           </div>
