@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
-import { List, Task, ThemeMode, ToastNotification } from '../types';
+import { List, Task, ToastNotification } from '../types';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -8,7 +8,6 @@ interface AppState {
   tasks: Task[];
   activeListId: string | null;
   searchQuery: string;
-  theme: ThemeMode;
   toasts: ToastNotification[];
   isLoadingData: boolean;
 }
@@ -25,19 +24,15 @@ type Action =
   | { type: 'REORDER_TASKS'; payload: Task[] }
   | { type: 'SET_ACTIVE_LIST'; payload: string | null }
   | { type: 'SET_SEARCH_QUERY'; payload: string }
-  | { type: 'SET_THEME'; payload: ThemeMode }
   | { type: 'ADD_TOAST'; payload: ToastNotification }
   | { type: 'REMOVE_TOAST'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean };
-
-const INITIAL_THEME: ThemeMode = (localStorage.getItem('neurotask_theme') as ThemeMode) || 'light';
 
 const initialState: AppState = {
   lists: [],
   tasks: [],
   activeListId: null,
   searchQuery: '',
-  theme: INITIAL_THEME,
   toasts: [],
   isLoadingData: true,
 };
@@ -82,8 +77,6 @@ function appReducer(state: AppState, action: Action): AppState {
       return { ...state, activeListId: action.payload };
     case 'SET_SEARCH_QUERY':
       return { ...state, searchQuery: action.payload };
-    case 'SET_THEME':
-      return { ...state, theme: action.payload };
     case 'ADD_TOAST':
       return { ...state, toasts: [...state.toasts, action.payload] };
     case 'REMOVE_TOAST':
@@ -98,7 +91,6 @@ function appReducer(state: AppState, action: Action): AppState {
 interface AppContextType {
   state: AppState;
   dispatch: React.Dispatch<Action>;
-  toggleTheme: () => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info', undoAction?: () => void, undoLabel?: string) => void;
   removeToast: (id: string) => void;
   createList: (listData: Omit<List, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<void>;
@@ -138,7 +130,7 @@ const SEED_LISTS: List[] = [
     id: 'seed-list-2',
     user_id: 'demo-user-123',
     title: '🎨 Design & Neumorphism',
-    description: 'Tweak shadow physics, dark mode contrasts, and typography',
+    description: 'Tweak shadow physics and typography',
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     color: '#10B981',
     created_at: new Date().toISOString(),
@@ -152,7 +144,7 @@ const SEED_TASKS: Task[] = [
     list_id: 'seed-list-1',
     user_id: 'demo-user-123',
     title: 'Review Neumorphic Box Shadow Specs',
-    description: 'Ensure 6px 6px 12px #A3B1C6 shadow formula matches exactly across light & dark theme',
+    description: 'Ensure 6px 6px 12px #A3B1C6 shadow formula matches',
     is_completed: true,
     priority: 'high',
     due_date: new Date().toISOString(),
@@ -199,17 +191,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
 
-  // Apply Theme to DOM element
-  useEffect(() => {
-    const root = document.documentElement;
-    if (state.theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('neurotask_theme', state.theme);
-  }, [state.theme]);
-
   // Load User Data (Supabase or Local Storage)
   useEffect(() => {
     if (!user) {
@@ -247,7 +228,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           console.error('Error fetching Supabase data:', error);
         }
       } else {
-        // Local storage / demo fallback
         const localLists = localStorage.getItem(`neurotask_lists_${user.id}`);
         const localTasks = localStorage.getItem(`neurotask_tasks_${user.id}`);
 
@@ -267,10 +247,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     fetchData();
   }, [user]);
-
-  const toggleTheme = () => {
-    dispatch({ type: 'SET_THEME', payload: state.theme === 'light' ? 'dark' : 'light' });
-  };
 
   const showToast = (
     message: string,
@@ -293,7 +269,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'REMOVE_TOAST', payload: id });
   };
 
-  // Helper to sync local storage in demo mode
   const syncLocal = (updatedLists?: List[], updatedTasks?: Task[]) => {
     if (!user || isSupabaseConfigured()) return;
     if (updatedLists) localStorage.setItem(`neurotask_lists_${user.id}`, JSON.stringify(updatedLists));
@@ -381,7 +356,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetTask = state.tasks.find((t) => t.id === taskId);
     if (!targetTask) return;
 
-    // Optimistic delete with 3-second undo action
     dispatch({ type: 'DELETE_TASK', payload: taskId });
     const updatedTasks = state.tasks.filter((t) => t.id !== taskId);
     syncLocal(undefined, updatedTasks);
@@ -390,7 +364,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       `Task deleted`,
       'info',
       async () => {
-        // Restore action
         dispatch({ type: 'ADD_TASK', payload: targetTask });
         syncLocal(undefined, [...updatedTasks, targetTask]);
         if (isSupabaseConfigured() && supabase) {
@@ -410,7 +383,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     syncLocal(undefined, reorderedTasks);
 
     if (isSupabaseConfigured() && supabase) {
-      // Upsert position updates
       const updates = reorderedTasks.map((t, idx) => ({
         id: t.id,
         position: idx,
@@ -427,7 +399,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         state,
         dispatch,
-        toggleTheme,
         showToast,
         removeToast,
         createList,

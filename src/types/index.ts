@@ -39,5 +39,3 @@ export interface ToastNotification {
   undoLabel?: string;
   duration?: number;
 }
-
-export type ThemeMode = 'light' | 'dark';

@@ -4,25 +4,15 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         neu: {
-          bg: {
-            light: '#E0E5EC',
-            dark: '#121212',
-          },
+          bg: '#E0E5EC',
           accent: '#6C63FF',
           accentHover: '#5A52E0',
-          lightShadow: {
-            light: '#FFFFFF',
-            dark: '#222222',
-          },
-          darkShadow: {
-            light: '#A3B1C6',
-            dark: '#050505',
-          }
+          lightShadow: '#FFFFFF',
+          darkShadow: '#A3B1C6',
         }
       },
       fontFamily: {

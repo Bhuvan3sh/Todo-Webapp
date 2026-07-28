@@ -2,8 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import {
-  Sun,
-  Moon,
   Search,
   LogOut,
   Command,
@@ -22,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleMobileSidebar,
   isMobileSidebarOpen,
 }) => {
-  const { state, dispatch, toggleTheme, setIsShortcutsModalOpen, setIsTaskModalOpen, setEditingTask } = useApp();
+  const { state, dispatch, setIsShortcutsModalOpen, setIsTaskModalOpen, setEditingTask } = useApp();
   const { user, signOut, isDemoMode } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -44,14 +42,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#E0E5EC] dark:bg-[#121212] py-3 px-4 sm:px-6 md:px-8 border-b border-gray-300/30 dark:border-gray-800/50 transition-colors duration-300">
+    <header className="sticky top-0 z-40 w-full bg-[#E0E5EC] py-3 px-4 sm:px-6 md:px-8 border-b border-gray-300/30 transition-colors duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Mobile Menu Toggle & Brand */}
         <div className="flex items-center space-x-2.5">
           <button
             onClick={onToggleMobileSidebar}
-            className="md:hidden w-10 h-10 rounded-full neu-raised neu-button flex items-center justify-center text-gray-700 dark:text-gray-200"
+            className="md:hidden w-10 h-10 rounded-full neu-raised neu-button flex items-center justify-center text-gray-700"
             title="Toggle Lists Menu"
           >
             {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -62,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
             <div>
-              <h1 className="text-base sm:text-xl font-bold tracking-tight text-gray-800 dark:text-white flex items-center gap-1.5">
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-gray-800 flex items-center gap-1.5">
                 Task Buddy
                 {isDemoMode && (
                   <span className="hidden xs:inline-block text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-[#6C63FF]/20 text-[#6C63FF]">
@@ -84,7 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               placeholder="Search tasks & lists... (Press '/')"
               value={state.searchQuery}
               onChange={(e) => dispatch({ type: 'SET_SEARCH_QUERY', payload: e.target.value })}
-              className="w-full pl-10 pr-12 py-2 rounded-neu-btn text-sm neu-sunken text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-[#6C63FF]/50 transition-all"
+              className="w-full pl-10 pr-12 py-2 rounded-neu-btn text-sm neu-sunken text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#6C63FF]/50 transition-all"
             />
             <span className="absolute right-3 text-[11px] font-medium text-gray-400 border border-gray-400/40 rounded px-1.5 py-0.5">
               /
@@ -98,22 +96,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile Search Icon Toggle */}
           <button
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-            className="md:hidden w-9 h-9 rounded-full neu-raised neu-button flex items-center justify-center text-gray-600 dark:text-gray-300"
+            className="md:hidden w-9 h-9 rounded-full neu-raised neu-button flex items-center justify-center text-gray-600"
             title="Search"
           >
             <Search className="w-4 h-4" />
           </button>
 
-          {/* Shortcuts Trigger (Hidden on tiny phone screens) */}
+          {/* Shortcuts Trigger */}
           <button
             onClick={() => setIsShortcutsModalOpen(true)}
             title="Keyboard Shortcuts"
-            className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full neu-raised neu-button items-center justify-center text-gray-600 dark:text-gray-300 hover:text-[#6C63FF]"
+            className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full neu-raised neu-button items-center justify-center text-gray-600 hover:text-[#6C63FF]"
           >
             <Command className="w-4 h-4" />
           </button>
 
-          {/* Quick Add Task Button for Header */}
+          {/* Quick Add Task Button */}
           <button
             onClick={() => {
               setEditingTask(null);
@@ -126,22 +124,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden sm:inline">Add Task</span>
           </button>
 
-          {/* Theme Toggle (Light / Dark) */}
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${state.theme === 'light' ? 'Dark' : 'Light'} Mode`}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full neu-raised neu-button flex items-center justify-center text-amber-500 dark:text-indigo-400"
-          >
-            {state.theme === 'light' ? (
-              <Moon className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-            ) : (
-              <Sun className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-            )}
-          </button>
-
           {/* User Email & Logout */}
           {user && (
-            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-gray-300/40 dark:border-gray-700/50">
+            <div className="flex items-center space-x-2 pl-1 sm:pl-2 border-l border-gray-300/40">
               <button
                 onClick={signOut}
                 title="Log Out"
@@ -166,7 +151,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               placeholder="Search tasks & lists..."
               value={state.searchQuery}
               onChange={(e) => dispatch({ type: 'SET_SEARCH_QUERY', payload: e.target.value })}
-              className="w-full pl-10 pr-9 py-2 rounded-neu-btn text-sm neu-sunken text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-[#6C63FF]/50"
+              className="w-full pl-10 pr-9 py-2 rounded-neu-btn text-sm neu-sunken text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#6C63FF]/50"
             />
             {state.searchQuery && (
               <button

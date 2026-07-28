@@ -11,8 +11,6 @@ import {
   ChevronUp,
   Edit2,
   Trash2,
-  Clock,
-  AlertCircle,
   Save,
   X,
 } from 'lucide-react';
@@ -23,7 +21,7 @@ interface TaskItemProps {
 
 export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const { updateTask, deleteTask } = useApp();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
   const [isEditingInline, setIsEditingInline] = useState(false);
 
   // Inline editing fields state
@@ -125,7 +123,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             value={inlineTitle}
             onChange={(e) => setInlineTitle(e.target.value)}
             placeholder="Task Title"
-            className="w-full px-3 py-1.5 rounded-neu-btn neu-sunken text-sm text-gray-800 dark:text-gray-100 font-medium"
+            className="w-full px-3 py-1.5 rounded-neu-btn neu-sunken text-sm text-gray-800 font-medium"
           />
 
           <textarea
@@ -133,7 +131,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             onChange={(e) => setInlineDesc(e.target.value)}
             placeholder="Task description (optional)..."
             rows={2}
-            className="w-full px-3 py-1.5 rounded-neu-btn neu-sunken text-xs text-gray-800 dark:text-gray-100"
+            className="w-full px-3 py-1.5 rounded-neu-btn neu-sunken text-xs text-gray-800"
           />
 
           <div className="flex items-center justify-between gap-3 text-xs">
@@ -172,7 +170,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               <button
                 {...attributes}
                 {...listeners}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-grab active:cursor-grabbing p-1"
+                className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing p-1"
                 title="Drag to reorder"
               >
                 <GripVertical className="w-4 h-4" />
@@ -196,8 +194,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                 onClick={handleToggleComplete}
                 className={`text-sm font-medium cursor-pointer truncate ${
                   task.is_completed
-                    ? 'line-through text-gray-400 dark:text-gray-500'
-                    : 'text-gray-800 dark:text-gray-100'
+                    ? 'line-through text-gray-400'
+                    : 'text-gray-800'
                 }`}
               >
                 {task.title}
@@ -226,7 +224,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                   className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
                     isOverdue
                       ? 'bg-rose-500/10 text-rose-500 font-bold'
-                      : 'text-gray-500 dark:text-gray-400 bg-gray-200/50 dark:bg-gray-800/50'
+                      : 'text-gray-500 bg-gray-200/50'
                   }`}
                 >
                   <Calendar className="w-3 h-3" />
@@ -237,11 +235,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                 </span>
               )}
 
-              {/* Expand description toggle */}
+              {/* Collapse/Expand description toggle */}
               {task.description && (
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="p-1 text-gray-400 hover:text-gray-600"
+                  title={isExpanded ? "Collapse description" : "Expand description"}
                 >
                   {isExpanded ? (
                     <ChevronUp className="w-4 h-4" />
@@ -271,9 +270,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             </div>
           </div>
 
-          {/* Expandable Accordion Description */}
+          {/* Description - Visible by default */}
           {isExpanded && task.description && (
-            <div className="mt-3 pt-3 border-t border-gray-300/30 dark:border-gray-800/50 text-xs text-gray-600 dark:text-gray-300 font-light leading-relaxed pl-9">
+            <div className="mt-3 pt-3 border-t border-gray-300/30 text-xs text-gray-600 font-light leading-relaxed pl-9">
               {task.description}
             </div>
           )}
