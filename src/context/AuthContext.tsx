@@ -7,6 +7,8 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   isDemoMode: boolean;
 }
@@ -102,7 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: error.message };
       }
 
-      // If session is not automatically created by signUp, attempt instant signIn
       if (data?.user && !data.session) {
         const { error: signInErr } = await supabase.auth.signInWithPassword({
           email,
@@ -135,6 +136,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resetPassword = async (email: string) => {
+    if (!isDemo && supabase) {
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      return { error: null };
+    } else {
+      return { error: null };
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    if (!isDemo && supabase) {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) {
+        return { error: error.message };
+      }
+      return { error: null };
+    } else {
+      return { error: null };
+    }
+  };
+
   const signOut = async () => {
     if (!isDemo && supabase) {
       await supabase.auth.signOut();
@@ -150,6 +180,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         signIn,
         signUp,
+        resetPassword,
+        updatePassword,
         signOut,
         isDemoMode: isDemo,
       }}

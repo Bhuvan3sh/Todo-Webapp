@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { CheckSquare, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { CheckSquare, Mail, Lock, Eye, EyeOff, ArrowRight, KeyRound, CheckCircle2, X } from 'lucide-react';
 
 export const Login: React.FC = () => {
-  const { signIn, isDemoMode } = useAuth();
+  const { signIn, resetPassword, isDemoMode } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -13,6 +13,13 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Forgot Password Modal State
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +32,24 @@ export const Login: React.FC = () => {
       setLoading(false);
     } else {
       navigate('/dashboard');
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setResetSuccess('');
+    setResetLoading(true);
+
+    const { error: err } = await resetPassword(resetEmail);
+    setResetLoading(false);
+
+    if (err) {
+      setResetError(err);
+    } else {
+      setResetSuccess(
+        'Password reset link sent! Please check your email inbox (and spam folder) for instructions.'
+      );
     }
   };
 
@@ -84,9 +109,22 @@ export const Login: React.FC = () => {
 
           {/* Password Field */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
-              Password
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-medium text-gray-600">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetEmail(email);
+                  setIsForgotModalOpen(true);
+                }}
+                className="text-xs text-[#6C63FF] hover:underline font-semibold"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
             <div className="relative flex items-center">
               <Lock className="absolute left-3.5 w-4 h-4 text-gray-400" />
               <input
@@ -145,6 +183,91 @@ export const Login: React.FC = () => {
         </p>
 
       </div>
+
+      {/* Forgot Password Modal */}
+      {isForgotModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md neu-raised rounded-neu-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-300/30">
+              <div className="flex items-center space-x-2">
+                <KeyRound className="w-5 h-5 text-[#6C63FF]" />
+                <h3 className="text-base font-bold text-gray-800">
+                  Reset Password
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsForgotModalOpen(false);
+                  setResetError('');
+                  setResetSuccess('');
+                }}
+                className="w-8 h-8 rounded-full neu-raised neu-button flex items-center justify-center text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-3">
+              Enter your account email address below to receive a password reset link.
+            </p>
+
+            <form onSubmit={handleForgotPassword} className="mt-4 space-y-4">
+              {resetError && (
+                <div className="p-3 rounded-neu-btn bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold">
+                  {resetError}
+                </div>
+              )}
+
+              {resetSuccess && (
+                <div className="p-3 rounded-neu-btn bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold flex items-start gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>{resetSuccess}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-3.5 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@example.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-neu-btn neu-sunken text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#6C63FF]/50"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotModalOpen(false);
+                    setResetError('');
+                    setResetSuccess('');
+                  }}
+                  className="px-4 py-2 rounded-neu-btn neu-raised neu-button text-xs font-semibold text-gray-600"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="neu-accent-button px-5 py-2.5 rounded-neu-btn text-xs font-bold flex items-center gap-1.5"
+                >
+                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
