@@ -34,15 +34,12 @@ import {
   Calendar,
   Edit2,
   Trash2,
-  ListTodo,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const {
     state,
-    dispatch,
     setIsListModalOpen,
     setEditingList,
     setIsTaskModalOpen,
@@ -74,7 +71,7 @@ export const Dashboard: React.FC = () => {
   const totalCount = activeListTasks.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // DND Kit Sensors optimized for both Desktop Pointer and Phone Touch
+  // DND Kit Sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -83,7 +80,7 @@ export const Dashboard: React.FC = () => {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // 200ms touch delay prevents scroll conflicts on mobile phones
+        delay: 200,
         tolerance: 6,
       },
     }),
@@ -134,9 +131,9 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#E0E5EC] dark:bg-[#121212] transition-colors duration-300 flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#E0E5EC] transition-colors duration-300 flex flex-col pb-20 md:pb-0">
       
-      {/* Top Navbar with mobile sidebar toggle */}
+      {/* Top Navbar */}
       <Navbar
         onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         isMobileSidebarOpen={isMobileSidebarOpen}
@@ -144,7 +141,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row">
         
-        {/* Responsive Sidebar (Desktop Panel & Mobile Drawer) */}
+        {/* Responsive Sidebar */}
         <Sidebar
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
@@ -183,19 +180,19 @@ export const Dashboard: React.FC = () => {
                         className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0"
                         style={{ backgroundColor: activeList.color || '#6C63FF' }}
                       />
-                      <h2 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
+                      <h2 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">
                         {activeList.title}
                       </h2>
                     </div>
 
                     {activeList.description && (
-                      <p className="text-xs sm:text-sm font-light text-gray-600 dark:text-gray-300 mt-1 pl-6 sm:pl-7">
+                      <p className="text-xs sm:text-sm font-light text-gray-600 mt-1 pl-6 sm:pl-7">
                         {activeList.description}
                       </p>
                     )}
 
                     {activeList.deadline && (
-                      <div className="flex items-center space-x-2 text-xs text-amber-600 dark:text-amber-400 mt-1.5 pl-6 sm:pl-7 font-medium">
+                      <div className="flex items-center space-x-2 text-xs text-amber-600 mt-1.5 pl-6 sm:pl-7 font-medium">
                         <Calendar className="w-3.5 h-3.5" />
                         <span>Deadline: {new Date(activeList.deadline).toLocaleDateString()}</span>
                       </div>
@@ -203,12 +200,12 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Action Buttons Header */}
-                  <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-0 border-gray-300/30 dark:border-gray-800/50">
+                  <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-0 border-gray-300/30">
                     
                     {/* PDF Export */}
                     <button
                       onClick={handlePdfExport}
-                      className="neu-raised neu-button px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-neu-btn text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5 hover:text-[#6C63FF]"
+                      className="neu-raised neu-button px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-neu-btn text-xs font-semibold text-gray-700 flex items-center gap-1.5 hover:text-[#6C63FF]"
                       title="Download Printable PDF"
                     >
                       <Download className="w-4 h-4 text-[#6C63FF]" />
@@ -240,7 +237,7 @@ export const Dashboard: React.FC = () => {
                       <Trash2 className="w-4 h-4" />
                     </button>
 
-                    {/* Add Task CTA (Desktop) */}
+                    {/* Add Task CTA */}
                     <button
                       onClick={() => {
                         setEditingTask(null);
@@ -254,9 +251,9 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Progress bar and task completion summary */}
-                <div className="mt-4 pt-3.5 border-t border-gray-300/30 dark:border-gray-800/50">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+                {/* Progress bar */}
+                <div className="mt-4 pt-3.5 border-t border-gray-300/30">
+                  <div className="flex items-center justify-between text-xs font-semibold text-gray-500 mb-1.5">
                     <span>Task Progress</span>
                     <span>
                       {completedCount}/{totalCount} ({progressPercent}%)
@@ -275,7 +272,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tasks List Container with Touch DND support */}
+              {/* Tasks List Container */}
               {filteredTasks.length === 0 ? (
                 searchQuery ? (
                   <EmptyState type="search-no-results" />
@@ -313,7 +310,7 @@ export const Dashboard: React.FC = () => {
         </main>
       </div>
 
-      {/* Floating Action Button (FAB) for Quick Task Creation on Mobile Phones */}
+      {/* Floating Action Button (FAB) */}
       <button
         onClick={() => {
           setEditingTask(null);
@@ -326,10 +323,10 @@ export const Dashboard: React.FC = () => {
       </button>
 
       {/* Mobile Bottom Quick Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] dark:bg-[#121212] border-t border-gray-300/40 dark:border-gray-800/60 py-2 px-6 flex items-center justify-around shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] border-t border-gray-300/40 py-2 px-6 flex items-center justify-around shadow-lg">
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-[#6C63FF] focus:text-[#6C63FF]"
+          className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
           <Layers className="w-5 h-5" />
           <span className="text-[10px] font-bold mt-0.5">Lists</span>
@@ -340,7 +337,7 @@ export const Dashboard: React.FC = () => {
             setEditingList(null);
             setIsListModalOpen(true);
           }}
-          className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-[#6C63FF] focus:text-[#6C63FF]"
+          className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
           <Plus className="w-5 h-5" />
           <span className="text-[10px] font-bold mt-0.5">New List</span>
@@ -348,7 +345,7 @@ export const Dashboard: React.FC = () => {
 
         <button
           onClick={handlePdfExport}
-          className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-[#6C63FF] focus:text-[#6C63FF]"
+          className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
           <Download className="w-5 h-5 text-[#6C63FF]" />
           <span className="text-[10px] font-bold mt-0.5">PDF</span>

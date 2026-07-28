@@ -29,33 +29,29 @@ export const DashboardOverview: React.FC = () => {
       value: totalLists,
       icon: Folder,
       color: 'text-[#6C63FF]',
-      bgColor: 'bg-[#6C63FF]/10',
     },
     {
       title: 'Total Tasks',
       value: totalTasks,
       icon: ListTodo,
       color: 'text-indigo-500',
-      bgColor: 'bg-indigo-500/10',
     },
     {
       title: 'Completed Today',
       value: completedToday,
       icon: CheckCircle2,
       color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
     },
     {
       title: 'Overdue Tasks',
       value: overdueTasks,
       icon: AlertTriangle,
       color: 'text-rose-500',
-      bgColor: 'bg-rose-500/10',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
       {stats.map((stat, idx) => {
         const Icon = stat.icon;
         return (
@@ -64,15 +60,15 @@ export const DashboardOverview: React.FC = () => {
             className="neu-raised rounded-neu-card p-4 sm:p-5 flex items-center justify-between transition-transform duration-200 hover:-translate-y-0.5"
           >
             <div>
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <p className="text-[11px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {stat.title}
               </p>
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mt-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mt-1">
                 {stat.value}
               </h3>
             </div>
-            <div className={`w-12 h-12 rounded-full neu-raised flex items-center justify-center ${stat.color}`}>
-              <Icon className="w-6 h-6 stroke-[2.5]" />
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full neu-raised flex items-center justify-center ${stat.color}`}>
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
           </div>
         );

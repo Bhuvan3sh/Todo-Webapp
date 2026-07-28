@@ -14,8 +14,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     setIsListModalOpen,
     setEditingList,
     deleteList,
-    setIsTaskModalOpen,
-    setEditingTask,
   } = useApp();
 
   const getListStats = (listId: string) => {
@@ -47,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       );
     } else {
       return (
-        <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center gap-1">
+        <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 flex items-center gap-1">
           <Calendar className="w-3 h-3" /> {diffDays}d left
         </span>
       );
@@ -57,8 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
   const content = (
     <div className="flex flex-col h-full">
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-300/30 dark:border-gray-800/50">
-        <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-300/30">
+        <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
           <ListTodo className="w-4 h-4 text-[#6C63FF]" />
           Your Lists ({state.lists.length})
         </h2>
@@ -92,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       {/* Lists Scroll Area */}
       <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
         {state.lists.length === 0 ? (
-          <div className="p-6 text-center neu-sunken rounded-neu-card text-gray-500 dark:text-gray-400">
+          <div className="p-6 text-center neu-sunken rounded-neu-card text-gray-500">
             <FolderPlus className="w-8 h-8 mx-auto mb-2 opacity-50 text-[#6C63FF]" />
             <p className="text-sm font-medium">No lists created</p>
             <button
@@ -167,14 +165,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 </div>
 
                 {list.description && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2 font-light">
+                  <p className="text-xs text-gray-500 line-clamp-1 mb-2 font-light">
                     {list.description}
                   </p>
                 )}
 
                 <div className="flex items-center justify-between text-xs my-2">
                   <div>{deadlineBadge}</div>
-                  <span className="font-medium text-gray-500 dark:text-gray-400 text-[11px] bg-gray-200/50 dark:bg-gray-800/50 px-2 py-0.5 rounded-full">
+                  <span className="font-medium text-gray-500 text-[11px] bg-gray-200/50 px-2 py-0.5 rounded-full">
                     {completedTasks}/{total} tasks
                   </span>
                 </div>
@@ -199,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
   return (
     <>
       {/* Desktop Sidebar Layout */}
-      <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 p-6 md:min-h-[calc(100vh-73px)] border-r border-gray-300/30 dark:border-gray-800/50">
+      <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 p-6 md:min-h-[calc(100vh-73px)] border-r border-gray-300/30">
         {content}
       </aside>
 
@@ -213,7 +211,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           />
 
           {/* Drawer content panel */}
-          <div className="relative w-4/5 max-w-xs bg-[#E0E5EC] dark:bg-[#121212] h-full p-5 shadow-2xl flex flex-col z-10 animate-slide-right">
+          <div className="relative w-4/5 max-w-xs bg-[#E0E5EC] h-full p-5 shadow-2xl flex flex-col z-10 animate-slide-right">
             {content}
           </div>
         </div>
