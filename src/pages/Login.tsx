@@ -40,7 +40,7 @@ export const Login: React.FC = () => {
           Task Buddy
         </h1>
         <p className="text-xs font-light text-gray-500 dark:text-gray-400 mt-1">
-          Sign in to your neumorphic workspace
+          Sign in to your account
         </p>
       </div>
 

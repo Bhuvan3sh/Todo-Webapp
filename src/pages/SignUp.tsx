@@ -39,7 +39,7 @@ export const SignUp: React.FC = () => {
           Task Buddy
         </h1>
         <p className="text-xs font-light text-gray-500 dark:text-gray-400 mt-1">
-          Create your free neumorphic account
+          Create your free account
         </p>
       </div>
 

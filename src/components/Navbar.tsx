@@ -70,9 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </span>
                 )}
               </h1>
-              <p className="text-[11px] font-light text-gray-500 dark:text-gray-400 hidden sm:block">
-                Neumorphic Task Management
-              </p>
             </div>
           </div>
         </div>
