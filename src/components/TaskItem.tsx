@@ -253,19 +253,19 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               {/* Inline Edit Trigger */}
               <button
                 onClick={() => setIsEditingInline(true)}
-                className="p-1 text-gray-400 hover:text-[#6C63FF] opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1.5 text-gray-500 hover:text-[#6C63FF] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 title="Edit Task"
               >
-                <Edit2 className="w-3.5 h-3.5" />
+                <Edit2 className="w-4 h-4" />
               </button>
 
               {/* Delete Task Trigger */}
               <button
                 onClick={() => deleteTask(task.id)}
-                className="p-1 text-gray-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1.5 text-gray-500 hover:text-rose-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 title="Delete Task"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>

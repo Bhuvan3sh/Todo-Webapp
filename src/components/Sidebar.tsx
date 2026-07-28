@@ -132,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                       className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: list.color || '#6C63FF' }}
                     />
-                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-100 truncate">
+                    <h3 className="font-semibold text-sm text-gray-800 truncate">
                       {list.title}
                     </h3>
                   </div>
