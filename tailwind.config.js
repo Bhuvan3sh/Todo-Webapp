@@ -11,17 +11,17 @@ export default {
         neu: {
           bg: {
             light: '#E0E5EC',
-            dark: '#1E2130',
+            dark: '#121212',
           },
           accent: '#6C63FF',
           accentHover: '#5A52E0',
           lightShadow: {
             light: '#FFFFFF',
-            dark: '#2A2F45',
+            dark: '#222222',
           },
           darkShadow: {
             light: '#A3B1C6',
-            dark: '#151821',
+            dark: '#050505',
           }
         }
       },

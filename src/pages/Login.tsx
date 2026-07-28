@@ -29,7 +29,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#E0E5EC] dark:bg-[#1E2130] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#E0E5EC] dark:bg-[#121212] transition-colors duration-300">
       
       {/* Brand Logo Header */}
       <div className="flex flex-col items-center mb-8">

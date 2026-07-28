@@ -134,7 +134,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#E0E5EC] dark:bg-[#1E2130] transition-colors duration-300 flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#E0E5EC] dark:bg-[#121212] transition-colors duration-300 flex flex-col pb-20 md:pb-0">
       
       {/* Top Navbar with mobile sidebar toggle */}
       <Navbar
@@ -326,7 +326,7 @@ export const Dashboard: React.FC = () => {
       </button>
 
       {/* Mobile Bottom Quick Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] dark:bg-[#1E2130] border-t border-gray-300/40 dark:border-gray-800/60 py-2 px-6 flex items-center justify-around shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] dark:bg-[#121212] border-t border-gray-300/40 dark:border-gray-800/60 py-2 px-6 flex items-center justify-around shadow-lg">
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
           className="flex flex-col items-center text-gray-600 dark:text-gray-300 hover:text-[#6C63FF] focus:text-[#6C63FF]"

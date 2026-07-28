@@ -44,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#E0E5EC] dark:bg-[#1E2130] py-3 px-4 sm:px-6 md:px-8 border-b border-gray-300/30 dark:border-gray-800/50 transition-colors duration-300">
+    <header className="sticky top-0 z-40 w-full bg-[#E0E5EC] dark:bg-[#121212] py-3 px-4 sm:px-6 md:px-8 border-b border-gray-300/30 dark:border-gray-800/50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Mobile Menu Toggle & Brand */}

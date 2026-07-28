@@ -2,13 +2,13 @@
 
 :root {
   --neu-bg-light: #E0E5EC;
-  --neu-bg-dark: #1E2130;
+  --neu-bg-dark: #121212;
   
   --neu-light-shadow-light: #FFFFFF;
   --neu-dark-shadow-light: #A3B1C6;
   
-  --neu-light-shadow-dark: #2A2F45;
-  --neu-dark-shadow-dark: #151821;
+  --neu-light-shadow-dark: #222222;
+  --neu-dark-shadow-dark: #050505;
   
   --neu-accent: #6C63FF;
 }
@@ -47,15 +47,15 @@
   transition: all 0.25s ease-in-out;
 }
 
-/* Dark Mode Shadows */
+/* Dark Mode Shadows (Sleek Obsidian Black) */
 .dark .neu-raised {
   background-color: var(--neu-bg-dark);
-  box-shadow: 6px 6px 12px var(--neu-dark-shadow-dark), -6px -6px 12px var(--neu-light-shadow-dark);
+  box-shadow: 6px 6px 14px var(--neu-dark-shadow-dark), -6px -6px 14px var(--neu-light-shadow-dark);
 }
 
 .dark .neu-raised-sm {
   background-color: var(--neu-bg-dark);
-  box-shadow: 3px 3px 6px var(--neu-dark-shadow-dark), -3px -3px 6px var(--neu-light-shadow-dark);
+  box-shadow: 3px 3px 7px var(--neu-dark-shadow-dark), -3px -3px 7px var(--neu-light-shadow-dark);
 }
 
 .dark .neu-sunken,
@@ -103,7 +103,7 @@
 }
 
 .dark .neu-accent-button {
-  box-shadow: 4px 4px 10px rgba(108, 99, 255, 0.4), -4px -4px 10px rgba(42, 47, 69, 0.6);
+  box-shadow: 4px 4px 10px rgba(108, 99, 255, 0.4), -4px -4px 10px rgba(34, 34, 34, 0.6);
 }
 
 .neu-accent-button:active {
@@ -161,5 +161,5 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #2A2F45;
+  background: #242424;
 }

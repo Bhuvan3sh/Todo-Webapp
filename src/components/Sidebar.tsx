@@ -213,7 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           />
 
           {/* Drawer content panel */}
-          <div className="relative w-4/5 max-w-xs bg-[#E0E5EC] dark:bg-[#1E2130] h-full p-5 shadow-2xl flex flex-col z-10 animate-slide-right">
+          <div className="relative w-4/5 max-w-xs bg-[#E0E5EC] dark:bg-[#121212] h-full p-5 shadow-2xl flex flex-col z-10 animate-slide-right">
             {content}
           </div>
         </div>
