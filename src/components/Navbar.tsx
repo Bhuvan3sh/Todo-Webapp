@@ -2,6 +2,13 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+  sendPushNotification,
+  checkTaskDeadlinesAndNotify,
+} from '../lib/notifications';
+import {
   Search,
   LogOut,
   Command,
@@ -9,6 +16,8 @@ import {
   Menu,
   X,
   Plus,
+  Bell,
+  BellOff,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -20,10 +29,51 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleMobileSidebar,
   isMobileSidebarOpen,
 }) => {
-  const { state, dispatch, setIsShortcutsModalOpen, setIsTaskModalOpen, setEditingTask } = useApp();
+  const { state, dispatch, setIsShortcutsModalOpen, setIsTaskModalOpen, setEditingTask, showToast } = useApp();
   const { user, signOut, isDemoMode } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [notificationPerm, setNotificationPerm] = useState<NotificationPermission>('default');
+
+  useEffect(() => {
+    setNotificationPerm(getNotificationPermission());
+  }, []);
+
+  // Periodic deadline checks for push notifications
+  useEffect(() => {
+    if (notificationPerm === 'granted') {
+      checkTaskDeadlinesAndNotify(state.tasks);
+      const interval = setInterval(() => {
+        checkTaskDeadlinesAndNotify(state.tasks);
+      }, 5 * 60 * 1000); // Check every 5 mins
+      return () => clearInterval(interval);
+    }
+  }, [notificationPerm, state.tasks]);
+
+  const handleToggleNotification = async () => {
+    if (!isNotificationSupported()) {
+      showToast('Browser notifications are not supported in this environment', 'error');
+      return;
+    }
+
+    if (notificationPerm === 'granted') {
+      sendPushNotification('🔔 Task Buddy Push Notifications Active', {
+        body: 'You will receive reminders for upcoming and overdue task deadlines.',
+      });
+      showToast('Push notifications are already active!', 'info');
+    } else {
+      const granted = await requestNotificationPermission();
+      setNotificationPerm(getNotificationPermission());
+      if (granted) {
+        sendPushNotification('🎉 Reminders Enabled!', {
+          body: 'Task Buddy will alert you about upcoming deadlines.',
+        });
+        showToast('Push notifications enabled successfully!', 'success');
+      } else {
+        showToast('Notification permission was blocked or denied', 'error');
+      }
+    }
+  };
 
   // Focus search input on '/' shortcut
   useEffect(() => {
@@ -100,6 +150,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Search"
           >
             <Search className="w-4 h-4" />
+          </button>
+
+          {/* Web Push Notification Bell Toggle */}
+          <button
+            onClick={handleToggleNotification}
+            title={
+              notificationPerm === 'granted'
+                ? 'Push Notifications Active (Click to test)'
+                : 'Enable Push Notifications'
+            }
+            className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full neu-raised neu-button flex items-center justify-center text-gray-600 hover:text-[#6C63FF]"
+          >
+            {notificationPerm === 'granted' ? (
+              <>
+                <Bell className="w-4 h-4 text-[#6C63FF]" />
+                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-[#E0E5EC]" />
+              </>
+            ) : (
+              <BellOff className="w-4 h-4 text-gray-400" />
+            )}
           </button>
 
           {/* Shortcuts Trigger */}
