@@ -48,7 +48,6 @@ export const registerPeriodicSync = async () => {
   try {
     const registration = await navigator.serviceWorker.ready;
 
-    // Check if Periodic Background Sync API is available
     if ('periodicSync' in registration) {
       const status = await navigator.permissions.query({
         name: 'periodic-background-sync' as any,
@@ -56,7 +55,7 @@ export const registerPeriodicSync = async () => {
 
       if (status.state === 'granted') {
         await (registration as any).periodicSync.register('task-buddy-checkin', {
-          minInterval: 6 * 60 * 60 * 1000, // 6 hours (browser may adjust between 5-8h)
+          minInterval: 6 * 60 * 60 * 1000,
         });
         console.log('[Task Buddy] Periodic background sync registered (6h interval)');
       }
@@ -66,28 +65,34 @@ export const registerPeriodicSync = async () => {
   }
 };
 
-// Send notification via Service Worker (works in background on Android PWA)
-export const sendPushNotification = async (title: string, options?: NotificationOptions) => {
+// Send a LOUD notification via Service Worker (works in background on Android PWA)
+export const sendPushNotification = async (title: string, options?: NotificationOptions & { tag?: string }) => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') {
     return;
   }
+
+  // Force loud notification options — our overrides go AFTER the spread
+  // so they always win even if caller passes silent:true
+  const baseOptions = {
+    icon: '/favicon.svg',
+    badge: '/favicon.svg',
+    ...options,
+  };
+
+  const loudOptions = {
+    ...baseOptions,
+    silent: false as const,
+    requireInteraction: true,
+  };
 
   try {
     // Prefer Service Worker notification (works in background on Android)
     if (isServiceWorkerSupported()) {
       const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(title, {
-        icon: '/favicon.svg',
-        badge: '/favicon.svg',
-        ...options,
-      });
+      await registration.showNotification(title, loudOptions);
     } else {
       // Fallback to basic Notification API (foreground only)
-      const notification = new Notification(title, {
-        icon: '/favicon.svg',
-        badge: '/favicon.svg',
-        ...options,
-      });
+      const notification = new Notification(title, loudOptions);
       notification.onclick = () => {
         window.focus();
         notification.close();
@@ -135,7 +140,7 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
     const timeDiffMs = dueDate.getTime() - now.getTime();
     const minutesDiff = timeDiffMs / (1000 * 60);
 
-    // If task is due within 30 minutes and hasn't been notified in the last 2 hours
+    // If task is due within 30 minutes
     if (minutesDiff > 0 && minutesDiff <= 30) {
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 2 * 60 * 60 * 1000) {
@@ -148,7 +153,7 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
       }
     }
 
-    // If task is overdue and hasn't been notified yet
+    // If task is overdue
     if (minutesDiff < 0 && Math.abs(minutesDiff) <= 120) {
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 4 * 60 * 60 * 1000) {

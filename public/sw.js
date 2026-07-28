@@ -1,7 +1,7 @@
 // Service Worker for Task Buddy PWA
 // Handles background push notifications and offline caching
 
-const CACHE_NAME = 'task-buddy-v1';
+const CACHE_NAME = 'task-buddy-v2';
 const OFFLINE_URLS = ['/'];
 
 // Install: pre-cache the app shell
@@ -30,13 +30,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch: serve from cache with network fallback (for offline support)
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful responses for offline use
         if (response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -46,7 +44,6 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Fallback to cache when offline
         return caches.match(event.request).then((cachedResponse) => {
           return cachedResponse || caches.match('/');
         });
@@ -54,7 +51,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification received from server or scheduled locally
+// Push notification received
 self.addEventListener('push', (event) => {
   let data = { title: '📌 Task Buddy', body: 'Check your pending tasks!' };
 
@@ -70,9 +67,11 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: '/favicon.svg',
     badge: '/favicon.svg',
-    vibrate: [200, 100, 200],
     tag: data.tag || 'task-buddy-notification',
     renotify: true,
+    requireInteraction: true,
+    silent: false,
+    vibrate: [300, 100, 300, 100, 300],
     actions: [
       { action: 'open', title: '📋 Open Task Buddy' },
       { action: 'dismiss', title: 'Dismiss' },
@@ -90,7 +89,6 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'dismiss') return;
 
-  // Focus existing window or open new one
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
@@ -111,9 +109,11 @@ self.addEventListener('periodicsync', (event) => {
         body: 'Take a quick moment to review your pending tasks and stay productive! 🚀',
         icon: '/favicon.svg',
         badge: '/favicon.svg',
-        vibrate: [200, 100, 200],
         tag: 'periodic-checkin',
         renotify: true,
+        requireInteraction: true,
+        silent: false,
+        vibrate: [300, 100, 300, 100, 300],
       })
     );
   }
