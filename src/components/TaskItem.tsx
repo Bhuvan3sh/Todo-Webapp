@@ -7,8 +7,6 @@ import {
   GripVertical,
   Check,
   Calendar,
-  ChevronDown,
-  ChevronUp,
   Edit2,
   Trash2,
   Save,
@@ -21,7 +19,6 @@ interface TaskItemProps {
 
 export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   const { updateTask, deleteTask } = useApp();
-  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
   const [isEditingInline, setIsEditingInline] = useState(false);
 
   // Inline editing fields state
@@ -160,17 +157,18 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
           </div>
         </div>
       ) : (
-        /* Normal Display Mode */
-        <div>
+        /* Normal Display Mode - Clean Multi-row Layout */
+        <div className="space-y-2.5">
+          
+          {/* Top Row: Drag Handle, Checkbox, Title (left) & Actions (right) */}
           <div className="flex items-center justify-between gap-3">
-            
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               
               {/* Drag Handle */}
               <button
                 {...attributes}
                 {...listeners}
-                className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing p-1"
+                className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing p-1 flex-shrink-0"
                 title="Drag to reorder"
               >
                 <GripVertical className="w-4 h-4" />
@@ -179,20 +177,20 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               {/* Neumorphic Custom Checkbox */}
               <button
                 onClick={handleToggleComplete}
-                className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md flex items-center justify-center flex-shrink-0 transition-all ${
                   task.is_completed
                     ? 'task-checkbox-checked'
                     : 'neu-sunken text-transparent hover:text-gray-300'
                 }`}
                 title={task.is_completed ? 'Mark as incomplete' : 'Mark as complete'}
               >
-                <Check className="w-4 h-4 stroke-[3]" />
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
               </button>
 
               {/* Task Title */}
               <span
                 onClick={handleToggleComplete}
-                className={`text-sm font-medium cursor-pointer truncate ${
+                className={`text-sm sm:text-base font-semibold cursor-pointer truncate ${
                   task.is_completed
                     ? 'line-through text-gray-400'
                     : 'text-gray-800'
@@ -202,67 +200,19 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
               </span>
             </div>
 
-            {/* Badges & Actions */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
-              
-              {/* Priority Pill */}
-              <span
-                className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                  task.priority === 'high'
-                    ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                    : task.priority === 'medium'
-                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                    : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                }`}
-              >
-                {task.priority}
-              </span>
-
-              {/* Due date badge */}
-              {task.due_date && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                    isOverdue
-                      ? 'bg-rose-500/10 text-rose-500 font-bold'
-                      : 'text-gray-500 bg-gray-200/50'
-                  }`}
-                >
-                  <Calendar className="w-3 h-3" />
-                  {new Date(task.due_date).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              )}
-
-              {/* Collapse/Expand description toggle */}
-              {task.description && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                  title={isExpanded ? "Collapse description" : "Expand description"}
-                >
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-              )}
-
-              {/* Inline Edit Trigger */}
+            {/* Actions (Edit & Delete) */}
+            <div className="flex items-center space-x-1 flex-shrink-0">
               <button
                 onClick={() => setIsEditingInline(true)}
-                className="p-1.5 text-gray-500 hover:text-[#6C63FF] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                className="p-1.5 text-gray-400 hover:text-[#6C63FF] transition-colors"
                 title="Edit Task"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
 
-              {/* Delete Task Trigger */}
               <button
                 onClick={() => deleteTask(task.id)}
-                className="p-1.5 text-gray-500 hover:text-rose-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                className="p-1.5 text-gray-400 hover:text-rose-500 transition-colors"
                 title="Delete Task"
               >
                 <Trash2 className="w-4 h-4" />
@@ -270,12 +220,44 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             </div>
           </div>
 
-          {/* Description - Visible by default */}
-          {isExpanded && task.description && (
-            <div className="mt-3 pt-3 border-t border-gray-300/30 text-xs text-gray-600 font-light leading-relaxed pl-9">
+          {/* Task Description (Full Width & Indented) */}
+          {task.description && (
+            <div className="pl-9 text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
               {task.description}
             </div>
           )}
+
+          {/* Bottom Row: Priority & Due Date Badges */}
+          <div className="pl-9 pt-0.5 flex flex-wrap items-center gap-2">
+            <span
+              className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${
+                task.priority === 'high'
+                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                  : task.priority === 'medium'
+                  ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                  : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+              }`}
+            >
+              {task.priority}
+            </span>
+
+            {task.due_date && (
+              <span
+                className={`text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1 font-medium ${
+                  isOverdue
+                    ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20 font-bold'
+                    : 'text-gray-600 bg-gray-200/60 border border-gray-300/40'
+                }`}
+              >
+                <Calendar className="w-3 h-3" />
+                {new Date(task.due_date).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            )}
+          </div>
+
         </div>
       )}
     </div>
