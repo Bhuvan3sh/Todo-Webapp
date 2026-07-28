@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { CheckSquare, Mail, Lock, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { CheckSquare, Mail, Lock, Eye, EyeOff, UserPlus, CheckCircle2 } from 'lucide-react';
 
 export const SignUp: React.FC = () => {
   const { signUp, isDemoMode } = useAuth();
@@ -11,17 +11,24 @@ export const SignUp: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
 
-    const { error: err } = await signUp(email, password);
+    const { error: err, requiresConfirmation } = await signUp(email, password);
+    setLoading(false);
+
     if (err) {
-      setError(err);
-      setLoading(false);
+      if (requiresConfirmation) {
+        setSuccessMessage(err);
+      } else {
+        setError(err);
+      }
     } else {
       navigate('/dashboard');
     }
@@ -59,6 +66,13 @@ export const SignUp: React.FC = () => {
         {error && (
           <div className="mb-5 p-3 rounded-neu-btn bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-semibold">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-5 p-3.5 rounded-neu-btn bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold flex items-start gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+            <span>{successMessage}</span>
           </div>
         )}
 

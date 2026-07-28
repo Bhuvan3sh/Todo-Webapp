@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; requiresConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   isDemoMode: boolean;
 }
@@ -45,10 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
         }
       } else {
-        // Create default local demo user so app is immediately usable
         const defaultUser = {
           id: 'demo-user-123',
-          email: 'demo@neurotask.app',
+          email: 'demo@taskbuddy.app',
           app_metadata: {},
           user_metadata: {},
           aud: 'authenticated',
@@ -67,9 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
       });
-      return { error: error ? error.message : null };
+
+      if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          return {
+            error: 'Your email is not confirmed yet. Please check your email inbox to click the confirmation link, or disable email confirmation in your Supabase Auth settings.',
+          };
+        }
+        return { error: error.message };
+      }
+      return { error: null };
     } else {
-      // Demo login
       if (!email || !password) {
         return { error: 'Please enter both email and password' };
       }
@@ -91,11 +98,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     if (!isDemo && supabase) {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
-      return { error: error ? error.message : null };
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      if (data?.user && !data.session) {
+        return {
+          error: 'Account created! Please check your email inbox to confirm your account before logging in.',
+          requiresConfirmation: true,
+        };
+      }
+
+      return { error: null };
     } else {
       if (!email || !password) {
         return { error: 'Please enter both email and password' };
