@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null; requiresConfirmation?: boolean }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   isDemoMode: boolean;
 }
@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return () => subscription.unsubscribe();
     } else {
-      // Demo / Local storage mode fallback for localhost testing without Supabase credentials
+      // Demo mode fallback
       const savedUserStr = localStorage.getItem(LOCAL_STORAGE_DEMO_USER_KEY);
       if (savedUserStr) {
         try {
@@ -68,11 +68,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        if (error.message.toLowerCase().includes('email not confirmed')) {
-          return {
-            error: 'Your email is not confirmed yet. Please check your email inbox to click the confirmation link, or disable email confirmation in your Supabase Auth settings.',
-          };
-        }
         return { error: error.message };
       }
       return { error: null };
@@ -107,11 +102,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: error.message };
       }
 
+      // If session is not automatically created by signUp, attempt instant signIn
       if (data?.user && !data.session) {
-        return {
-          error: 'Account created! Please check your email inbox to confirm your account before logging in.',
-          requiresConfirmation: true,
-        };
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInErr) {
+          return { error: signInErr.message };
+        }
       }
 
       return { error: null };
