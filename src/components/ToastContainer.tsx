@@ -18,7 +18,7 @@ export const ToastContainer: React.FC = () => {
             {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />}
             {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-500 flex-shrink-0" />}
             {toast.type === 'info' && <Info className="w-5 h-5 text-[#6C63FF] flex-shrink-0" />}
-            <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+            <span className="text-sm font-medium text-gray-800">
               {toast.message}
             </span>
           </div>
@@ -38,7 +38,7 @@ export const ToastContainer: React.FC = () => {
 
             <button
               onClick={() => removeToast(toast.id)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"
+              className="text-gray-400 hover:text-gray-600 p-1"
             >
               <X className="w-4 h-4" />
             </button>

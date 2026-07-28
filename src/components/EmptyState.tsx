@@ -13,9 +13,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, onAction }) => {
         <div className="w-16 h-16 rounded-full neu-raised flex items-center justify-center text-[#6C63FF] mb-4">
           <FolderPlus className="w-8 h-8" />
         </div>
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white">No lists created yet</h3>
-        <p className="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
-          Organize your projects, work, and personal goals into custom neumorphic lists.
+        <h3 className="text-lg font-bold text-gray-800">No lists created yet</h3>
+        <p className="text-sm font-light text-gray-500 mt-1 max-w-sm">
+          Organize your projects, work, and personal goals into custom lists.
         </p>
         <button
           onClick={onAction}
@@ -33,8 +33,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, onAction }) => {
         <div className="w-16 h-16 rounded-full neu-raised flex items-center justify-center text-amber-500 mb-4">
           <Sparkles className="w-8 h-8" />
         </div>
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white">No matching results</h3>
-        <p className="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+        <h3 className="text-lg font-bold text-gray-800">No matching results</h3>
+        <p className="text-sm font-light text-gray-500 mt-1 max-w-sm">
           Try searching with another keyword or clear the search filter in the top navbar.
         </p>
       </div>
@@ -46,8 +46,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ type, onAction }) => {
       <div className="w-16 h-16 rounded-full neu-raised flex items-center justify-center text-[#6C63FF] mb-4">
         <CheckSquare className="w-8 h-8" />
       </div>
-      <h3 className="text-lg font-bold text-gray-800 dark:text-white">This list is empty</h3>
-      <p className="text-sm font-light text-gray-500 dark:text-gray-400 mt-1 max-w-sm">
+      <h3 className="text-lg font-bold text-gray-800">This list is empty</h3>
+      <p className="text-sm font-light text-gray-500 mt-1 max-w-sm">
         Stay focused and productive. Add your first task to get started!
       </p>
       <button

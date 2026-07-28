@@ -17,16 +17,16 @@ export const KeyboardShortcutsModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-md neu-raised rounded-neu-card p-6 shadow-2xl">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-300/30 dark:border-gray-800/50">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-300/30">
           <div className="flex items-center space-x-2">
             <Command className="w-5 h-5 text-[#6C63FF]" />
-            <h3 className="text-base font-bold text-gray-800 dark:text-white">
+            <h3 className="text-base font-bold text-gray-800">
               Keyboard Shortcuts
             </h3>
           </div>
           <button
             onClick={() => setIsShortcutsModalOpen(false)}
-            className="w-8 h-8 rounded-full neu-raised neu-button flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-white"
+            className="w-8 h-8 rounded-full neu-raised neu-button flex items-center justify-center text-gray-400 hover:text-gray-600"
           >
             <X className="w-4 h-4" />
           </button>
@@ -38,7 +38,7 @@ export const KeyboardShortcutsModal: React.FC = () => {
               key={idx}
               className="flex items-center justify-between p-2.5 rounded-neu-btn neu-sunken text-sm"
             >
-              <span className="text-gray-700 dark:text-gray-300 font-medium">
+              <span className="text-gray-700 font-medium">
                 {sc.description}
               </span>
               <kbd className="px-2.5 py-1 rounded neu-raised-sm text-xs font-bold text-[#6C63FF] border border-[#6C63FF]/30">
