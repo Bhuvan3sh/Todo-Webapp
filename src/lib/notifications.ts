@@ -1,7 +1,12 @@
 // Browser Web Push Notification Utility for Task Buddy
+// Uses Service Worker for background notifications on Android PWA
 
 export const isNotificationSupported = (): boolean => {
   return typeof window !== 'undefined' && 'Notification' in window;
+};
+
+export const isServiceWorkerSupported = (): boolean => {
+  return typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
 };
 
 export const getNotificationPermission = (): NotificationPermission => {
@@ -20,28 +25,80 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   }
 };
 
-export const sendPushNotification = (title: string, options?: NotificationOptions) => {
+// Register Service Worker for background push notifications
+export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+  if (!isServiceWorkerSupported()) return null;
+
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+    });
+    console.log('[Task Buddy] Service Worker registered:', registration.scope);
+    return registration;
+  } catch (error) {
+    console.error('[Task Buddy] Service Worker registration failed:', error);
+    return null;
+  }
+};
+
+// Register periodic background sync (for 5-8 hour check-in reminders)
+export const registerPeriodicSync = async () => {
+  if (!isServiceWorkerSupported()) return;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+
+    // Check if Periodic Background Sync API is available
+    if ('periodicSync' in registration) {
+      const status = await navigator.permissions.query({
+        name: 'periodic-background-sync' as any,
+      });
+
+      if (status.state === 'granted') {
+        await (registration as any).periodicSync.register('task-buddy-checkin', {
+          minInterval: 6 * 60 * 60 * 1000, // 6 hours (browser may adjust between 5-8h)
+        });
+        console.log('[Task Buddy] Periodic background sync registered (6h interval)');
+      }
+    }
+  } catch (error) {
+    console.log('[Task Buddy] Periodic sync not available, falling back to in-app timer');
+  }
+};
+
+// Send notification via Service Worker (works in background on Android PWA)
+export const sendPushNotification = async (title: string, options?: NotificationOptions) => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') {
     return;
   }
 
   try {
-    const notification = new Notification(title, {
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
-      ...options,
-    });
-
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
+    // Prefer Service Worker notification (works in background on Android)
+    if (isServiceWorkerSupported()) {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        icon: '/favicon.svg',
+        badge: '/favicon.svg',
+        ...options,
+      });
+    } else {
+      // Fallback to basic Notification API (foreground only)
+      const notification = new Notification(title, {
+        icon: '/favicon.svg',
+        badge: '/favicon.svg',
+        ...options,
+      });
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    }
   } catch (e) {
     console.error('Error triggering notification:', e);
   }
 };
 
-// Periodic Check-in Notification (Every 5 to 8 hours)
+// Periodic Check-in Notification (Every ~6 hours, fallback for no periodic sync)
 export const checkPeriodicAppReminder = () => {
   if (!isNotificationSupported() || Notification.permission !== 'granted') return;
 
@@ -49,7 +106,6 @@ export const checkPeriodicAppReminder = () => {
   const lastReminder = localStorage.getItem(PERIODIC_KEY);
   const now = Date.now();
 
-  // 6 hours in milliseconds (21,600,000 ms)
   const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
   if (!lastReminder || now - parseInt(lastReminder, 10) >= SIX_HOURS_MS) {
@@ -92,7 +148,7 @@ export const checkTaskDeadlinesAndNotify = (tasks: Array<{ id: string; title: st
       }
     }
 
-    // If task is overdue today and hasn't been notified yet
+    // If task is overdue and hasn't been notified yet
     if (minutesDiff < 0 && Math.abs(minutesDiff) <= 120) {
       const lastNotified = notifiedTasks[task.id];
       if (!lastNotified || Date.now() - lastNotified > 4 * 60 * 60 * 1000) {
