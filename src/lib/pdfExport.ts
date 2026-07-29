@@ -79,6 +79,10 @@ function renderPageHtml(
           .join('');
 
   return `
+    ${
+      isFirstPage
+        ? `
+    <!-- Top Header Branding (Page 1 Only) -->
     <div style="border-bottom: 2px solid #6C63FF; padding-bottom: 14px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end;">
       <div>
         <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #6C63FF; letter-spacing: -0.5px;">
@@ -95,9 +99,6 @@ function renderPageHtml(
       </div>
     </div>
 
-    ${
-      isFirstPage
-        ? `
     <!-- List Header Box (Page 1 Only) -->
     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -109,13 +110,8 @@ function renderPageHtml(
     </div>
     `
         : `
-    <!-- Compact Header (Subsequent Pages) -->
-    <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${list.color || '#6C63FF'}; display: inline-block;"></span>
-        <span style="font-size: 14px; font-weight: 700; color: #334155;">${list.title} (Continued)</span>
-      </div>
-    </div>
+    <!-- Clean top margin on Page 2+ without repeating header -->
+    <div style="padding-top: 10px; margin-bottom: 14px;"></div>
     `
     }
 
@@ -135,11 +131,14 @@ function renderPageHtml(
       </tbody>
     </table>
 
-    <!-- Footer -->
-    <div style="margin-top: 24px; padding-top: 12px; border-top: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #94a3b8;">
-      <span>Task Buddy — https://todo.theorave.in</span>
-      <span>Page ${pageNum} of ${totalPages}</span>
-    </div>
+    <!-- Clean minimal footer (Page number only when multi-page, no dashed line or watermark) -->
+    ${
+      totalPages > 1
+        ? `<div style="margin-top: 16px; text-align: right; font-size: 10px; color: #94a3b8; font-weight: 500;">
+             Page ${pageNum} of ${totalPages}
+           </div>`
+        : ''
+    }
   `;
 }
 
