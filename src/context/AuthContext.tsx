@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -22,6 +22,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const isDemo = !isSupabaseConfigured();
 
+  // Attempt to silently recover the session when token refresh fails
+  const recoverSession = useCallback(async () => {
+    if (isDemo || !supabase) return;
+
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.warn('[Task Buddy] Session recovery error:', error.message);
+        // Don't sign out — keep user logged in with stale data
+        // The user can still view their cached tasks
+        return;
+      }
+
+      if (session?.user) {
+        setUser(session.user);
+      }
+    } catch (e) {
+      console.warn('[Task Buddy] Session recovery failed:', e);
+      // Silently fail — don't log user out
+    }
+  }, [isDemo]);
+
   useEffect(() => {
     if (!isDemo && supabase) {
       // Get initial session
@@ -30,13 +53,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       });
 
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
+      // Listen for auth state changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        // Only clear user on explicit sign-out
+        if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          if (session?.user) {
+            setUser(session.user);
+          }
+          setLoading(false);
+          return;
+        }
+
+        // For any other event, preserve the existing user if session is null
+        // This prevents auto-logout on transient network errors
+        if (session?.user) {
+          setUser(session.user);
+        }
         setLoading(false);
       });
 
-      return () => subscription.unsubscribe();
+      // Periodically refresh the session to keep it alive (every 10 minutes)
+      const refreshInterval = setInterval(async () => {
+        if (!supabase) return;
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            // Force a token refresh if the token will expire within 5 minutes
+            const expiresAt = session.expires_at;
+            const now = Math.floor(Date.now() / 1000);
+            if (expiresAt && expiresAt - now < 300) {
+              await supabase.auth.refreshSession();
+            }
+          }
+        } catch (e) {
+          console.warn('[Task Buddy] Background token refresh failed:', e);
+          // Don't log out — just retry next interval
+        }
+      }, 10 * 60 * 1000); // Every 10 minutes
+
+      // Also refresh when the page becomes visible again (user returns to tab/app)
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          recoverSession();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Also refresh when the app comes back online
+      const handleOnline = () => {
+        recoverSession();
+      };
+      window.addEventListener('online', handleOnline);
+
+      return () => {
+        subscription.unsubscribe();
+        clearInterval(refreshInterval);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('online', handleOnline);
+      };
     } else {
       // Demo mode fallback
       const savedUserStr = localStorage.getItem(LOCAL_STORAGE_DEMO_USER_KEY);
@@ -60,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     }
-  }, [isDemo]);
+  }, [isDemo, recoverSession]);
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     if (!isDemo && supabase) {
