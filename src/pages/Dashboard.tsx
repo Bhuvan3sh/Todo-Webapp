@@ -40,6 +40,7 @@ import {
   Trash2,
   Layers,
   Sun,
+  Bot,
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -50,6 +51,7 @@ export const Dashboard: React.FC = () => {
     setEditingList,
     setIsTaskModalOpen,
     setEditingTask,
+    setIsMcpDocsOpen,
     deleteList,
     reorderTasks,
     showToast,
@@ -359,21 +361,21 @@ export const Dashboard: React.FC = () => {
           setEditingTask(null);
           setIsTaskModalOpen(true);
         }}
-        className="md:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full neu-accent-button flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
+        className="md:hidden fixed bottom-16 right-4 z-40 w-12 h-12 rounded-full neu-accent-button flex items-center justify-center shadow-2xl active:scale-90 transition-transform"
         title="Add New Task"
       >
-        <Plus className="w-7 h-7 stroke-[3]" />
+        <Plus className="w-6 h-6 stroke-[3]" />
       </button>
 
       {/* Mobile Bottom Quick Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] border-t border-gray-300/40 py-2 px-6 flex items-center justify-around shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#E0E5EC] border-t border-gray-300/40 py-2 px-3 flex items-center justify-around shadow-lg">
         <button
           onClick={() => {
             dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
           }}
           className={`flex flex-col items-center ${activeView === 'today' ? 'text-amber-600' : 'text-gray-600'}`}
         >
-          <Sun className="w-5 h-5" />
+          <Sun className="w-4 h-4" />
           <span className="text-[10px] font-bold mt-0.5">Today</span>
         </button>
 
@@ -381,7 +383,7 @@ export const Dashboard: React.FC = () => {
           onClick={() => setIsMobileSidebarOpen(true)}
           className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
-          <Layers className="w-5 h-5" />
+          <Layers className="w-4 h-4" />
           <span className="text-[10px] font-bold mt-0.5">Lists</span>
         </button>
 
@@ -392,15 +394,23 @@ export const Dashboard: React.FC = () => {
           }}
           className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           <span className="text-[10px] font-bold mt-0.5">New List</span>
+        </button>
+
+        <button
+          onClick={() => setIsMcpDocsOpen(true)}
+          className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
+        >
+          <Bot className="w-4 h-4 text-[#6C63FF]" />
+          <span className="text-[10px] font-bold mt-0.5">AI Docs</span>
         </button>
 
         <button
           onClick={handlePdfExport}
           className="flex flex-col items-center text-gray-600 hover:text-[#6C63FF] focus:text-[#6C63FF]"
         >
-          <Download className="w-5 h-5 text-[#6C63FF]" />
+          <Download className="w-4 h-4 text-gray-600" />
           <span className="text-[10px] font-bold mt-0.5">PDF</span>
         </button>
       </div>
