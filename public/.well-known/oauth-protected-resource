@@ -1,0 +1,7 @@
+{
+  "resource": "https://todo.theorave.in/api/mcp",
+  "authorization_servers": [
+    "https://todo.theorave.in"
+  ],
+  "scopes_supported": ["mcp:read", "mcp:write"]
+}
