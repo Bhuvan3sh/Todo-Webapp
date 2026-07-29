@@ -235,6 +235,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           dispatch({ type: 'SET_LISTS', payload: loadedLists });
           dispatch({ type: 'SET_TASKS', payload: loadedTasks });
           dispatch({ type: 'SET_ACTIVE_LIST', payload: loadedLists[0]?.id || null });
+          // Default launch view is ALWAYS Today page
+          dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
         } catch (error) {
           console.error('Error fetching Supabase data:', error);
         }
@@ -248,6 +250,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         dispatch({ type: 'SET_LISTS', payload: lists });
         dispatch({ type: 'SET_TASKS', payload: tasks });
         dispatch({ type: 'SET_ACTIVE_LIST', payload: lists[0]?.id || null });
+        // Default launch view is ALWAYS Today page
+        dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
 
         localStorage.setItem(`neurotask_lists_${user.id}`, JSON.stringify(lists));
         localStorage.setItem(`neurotask_tasks_${user.id}`, JSON.stringify(tasks));
