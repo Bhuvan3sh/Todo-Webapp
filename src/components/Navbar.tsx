@@ -39,13 +39,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     setNotificationPerm(getNotificationPermission());
   }, []);
 
-  // Periodic deadline checks for push notifications
+  // Periodic deadline checks for push notifications (every 1 minute)
   useEffect(() => {
     if (notificationPerm === 'granted') {
+      // Immediate check on load (shows daily digest + deadline alerts)
       checkTaskDeadlinesAndNotify(state.tasks);
       const interval = setInterval(() => {
         checkTaskDeadlinesAndNotify(state.tasks);
-      }, 5 * 60 * 1000); // Check every 5 mins
+      }, 60 * 1000); // Check every 1 minute
       return () => clearInterval(interval);
     }
   }, [notificationPerm, state.tasks]);
