@@ -13,24 +13,25 @@ const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   "";
 
-function getSupabase(token?: string) {
+// Create a user-scoped Supabase client using their OAuth JWT
+function getSupabase(userToken?: string) {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
-    global: token
-      ? { headers: { Authorization: `Bearer ${token}` } }
+    global: userToken
+      ? { headers: { Authorization: `Bearer ${userToken}` } }
       : undefined,
   });
 }
 
-function createTaskBuddyServer(): McpServer {
+// Build the MCP server with all tools scoped to the authenticated user
+function createTaskBuddyServer(userToken?: string): McpServer {
   const server = new McpServer({
     name: "task-buddy-mcp",
     version: "1.0.0",
   });
 
-  // ─── LIST LISTS ──────────────────────────────────────────
   server.tool("list_lists", "Fetch all todo lists in Task Buddy", {}, async () => {
-    const supabase = getSupabase();
+    const supabase = getSupabase(userToken);
     const { data, error } = await supabase
       .from("lists")
       .select("id, title, description, color, deadline, created_at")
@@ -39,7 +40,6 @@ function createTaskBuddyServer(): McpServer {
     return { content: [{ type: "text" as const, text: JSON.stringify(data || [], null, 2) }] };
   });
 
-  // ─── CREATE LIST ─────────────────────────────────────────
   server.tool(
     "create_list",
     "Create a new list for grouping tasks",
@@ -50,7 +50,7 @@ function createTaskBuddyServer(): McpServer {
       deadline: { type: "string", description: "Optional deadline in ISO format" },
     },
     async ({ title, description, color, deadline }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const { data, error } = await supabase
         .from("lists")
         .insert([{ title, description: description || null, color: color || "#6C63FF", deadline: deadline || null }])
@@ -60,7 +60,6 @@ function createTaskBuddyServer(): McpServer {
     }
   );
 
-  // ─── LIST TASKS ──────────────────────────────────────────
   server.tool(
     "list_tasks",
     "Fetch tasks with optional filtering by list, status, or priority",
@@ -70,7 +69,7 @@ function createTaskBuddyServer(): McpServer {
       priority: { type: "string", description: "Filter by priority: low, medium, high" },
     },
     async ({ list_id, is_completed, priority }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       let query = supabase
         .from("tasks")
         .select("id, title, description, is_completed, priority, due_date, position, created_at, list_id, lists(title, color)")
@@ -84,7 +83,6 @@ function createTaskBuddyServer(): McpServer {
     }
   );
 
-  // ─── CREATE TASK ─────────────────────────────────────────
   server.tool(
     "create_task",
     "Add a new task to Task Buddy",
@@ -96,7 +94,7 @@ function createTaskBuddyServer(): McpServer {
       due_date: { type: "string", description: "Due date/time in ISO format (e.g. 2026-07-30T17:00:00Z)" },
     },
     async ({ title, description, list_id, priority, due_date }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const { data, error } = await supabase
         .from("tasks")
         .insert([{ title, description: description || null, list_id: list_id || null, priority: priority || "medium", due_date: due_date || null, is_completed: false, position: 0 }])
@@ -106,7 +104,6 @@ function createTaskBuddyServer(): McpServer {
     }
   );
 
-  // ─── UPDATE TASK ─────────────────────────────────────────
   server.tool(
     "update_task",
     "Update an existing task by its ID",
@@ -119,7 +116,7 @@ function createTaskBuddyServer(): McpServer {
       is_completed: { type: "boolean", description: "Mark completed status" },
     },
     async ({ id, ...updates }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
       const { data, error } = await supabase.from("tasks").update(cleanUpdates).eq("id", id).select();
       if (error) throw new Error(error.message);
@@ -127,7 +124,6 @@ function createTaskBuddyServer(): McpServer {
     }
   );
 
-  // ─── COMPLETE TASK ───────────────────────────────────────
   server.tool(
     "complete_task",
     "Mark a task as completed or uncompleted",
@@ -136,7 +132,7 @@ function createTaskBuddyServer(): McpServer {
       is_completed: { type: "boolean", description: "true to complete, false to mark pending (default: true)" },
     },
     async ({ id, is_completed }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const completed = is_completed !== undefined ? is_completed : true;
       const { data, error } = await supabase.from("tasks").update({ is_completed: completed }).eq("id", id).select();
       if (error) throw new Error(error.message);
@@ -144,26 +140,24 @@ function createTaskBuddyServer(): McpServer {
     }
   );
 
-  // ─── DELETE TASK ─────────────────────────────────────────
   server.tool(
     "delete_task",
     "Delete a task by its ID",
     { id: { type: "string", description: "ID of the task to delete" } },
     async ({ id }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (error) throw new Error(error.message);
       return { content: [{ type: "text" as const, text: `Task ${id} deleted successfully.` }] };
     }
   );
 
-  // ─── SEARCH TASKS ────────────────────────────────────────
   server.tool(
     "search_tasks",
     "Search tasks by matching text in title or description",
     { query: { type: "string", description: "Search keyword" } },
     async ({ query }) => {
-      const supabase = getSupabase();
+      const supabase = getSupabase(userToken);
       const { data, error } = await supabase
         .from("tasks")
         .select("id, title, description, is_completed, priority, due_date, created_at")
@@ -191,7 +185,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // For GET — return server info (useful for health checks & discovery)
+  // Extract user's Bearer token (set by Claude.ai after OAuth login)
+  const authHeader = req.headers.authorization || "";
+  const userToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+
+  // GET — return server info
   if (req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
@@ -202,22 +200,22 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         protocol: "MCP (Model Context Protocol)",
         transport: "Streamable HTTP",
         endpoint: "https://todo.theorave.in/api/mcp",
+        authenticated: !!userToken,
         tools: [
           "list_lists", "create_list", "list_tasks", "create_task",
           "update_task", "complete_task", "delete_task", "search_tasks",
         ],
-        instructions: "POST JSON-RPC 2.0 requests to this endpoint. Use the MCP protocol to discover and call tools.",
       })
     );
     return;
   }
 
-  // For POST — handle MCP JSON-RPC messages
+  // POST — handle MCP JSON-RPC messages
   if (req.method === "POST") {
     try {
-      const mcpServer = createTaskBuddyServer();
+      const mcpServer = createTaskBuddyServer(userToken);
       const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: undefined, // Stateless — new server per request (good for serverless)
+        sessionIdGenerator: undefined,
       });
 
       await mcpServer.connect(transport);
@@ -231,7 +229,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // For DELETE — session termination (no-op in stateless mode)
+  // DELETE — session termination (no-op in stateless mode)
   if (req.method === "DELETE") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ ok: true }));

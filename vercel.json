@@ -2,10 +2,20 @@
   "functions": {
     "api/mcp.ts": {
       "maxDuration": 60
+    },
+    "api/oauth/authorize.ts": {
+      "maxDuration": 30
+    },
+    "api/oauth/token.ts": {
+      "maxDuration": 15
+    },
+    "api/oauth/register.ts": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
-    { "source": "/api/mcp", "destination": "/api/mcp" },
+    { "source": "/.well-known/:path*", "destination": "/.well-known/:path*" },
+    { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -16,6 +26,13 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, DELETE, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Accept, Mcp-Session-Id" },
         { "key": "Access-Control-Expose-Headers", "value": "Mcp-Session-Id" }
+      ]
+    },
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Content-Type", "value": "application/json" }
       ]
     }
   ]
