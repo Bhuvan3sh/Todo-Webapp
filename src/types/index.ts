@@ -1,4 +1,5 @@
 export type PriorityLevel = 'low' | 'medium' | 'high';
+export type ViewMode = 'today' | 'upcoming' | 'all' | 'list';
 
 export interface UserProfile {
   id: string;
@@ -39,3 +40,4 @@ export interface ToastNotification {
   undoLabel?: string;
   duration?: number;
 }
+

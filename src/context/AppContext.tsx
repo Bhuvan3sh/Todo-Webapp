@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
-import { List, Task, ToastNotification } from '../types';
+import { List, Task, ToastNotification, ViewMode } from '../types';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
@@ -7,6 +7,7 @@ interface AppState {
   lists: List[];
   tasks: Task[];
   activeListId: string | null;
+  activeView: ViewMode;
   searchQuery: string;
   toasts: ToastNotification[];
   isLoadingData: boolean;
@@ -23,6 +24,7 @@ type Action =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'REORDER_TASKS'; payload: Task[] }
   | { type: 'SET_ACTIVE_LIST'; payload: string | null }
+  | { type: 'SET_ACTIVE_VIEW'; payload: ViewMode }
   | { type: 'SET_SEARCH_QUERY'; payload: string }
   | { type: 'ADD_TOAST'; payload: ToastNotification }
   | { type: 'REMOVE_TOAST'; payload: string }
@@ -32,6 +34,7 @@ const initialState: AppState = {
   lists: [],
   tasks: [],
   activeListId: null,
+  activeView: 'today',
   searchQuery: '',
   toasts: [],
   isLoadingData: true,
@@ -42,7 +45,7 @@ function appReducer(state: AppState, action: Action): AppState {
     case 'SET_LISTS':
       return { ...state, lists: action.payload };
     case 'ADD_LIST':
-      return { ...state, lists: [...state.lists, action.payload], activeListId: action.payload.id };
+      return { ...state, lists: [...state.lists, action.payload], activeListId: action.payload.id, activeView: 'list' };
     case 'UPDATE_LIST':
       return {
         ...state,
@@ -74,7 +77,9 @@ function appReducer(state: AppState, action: Action): AppState {
     case 'REORDER_TASKS':
       return { ...state, tasks: action.payload };
     case 'SET_ACTIVE_LIST':
-      return { ...state, activeListId: action.payload };
+      return { ...state, activeListId: action.payload, activeView: 'list' };
+    case 'SET_ACTIVE_VIEW':
+      return { ...state, activeView: action.payload };
     case 'SET_SEARCH_QUERY':
       return { ...state, searchQuery: action.payload };
     case 'ADD_TOAST':
@@ -111,6 +116,10 @@ interface AppContextType {
   setEditingTask: (task: Task | null) => void;
   isShortcutsModalOpen: boolean;
   setIsShortcutsModalOpen: (open: boolean) => void;
+  isMcpDocsOpen: boolean;
+  setIsMcpDocsOpen: (open: boolean) => void;
+  isInstallModalOpen: boolean;
+  setIsInstallModalOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -190,6 +199,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isMcpDocsOpen, setIsMcpDocsOpen] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
 
   // Load User Data (Supabase or Local Storage)
   useEffect(() => {
@@ -418,6 +429,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setEditingTask,
         isShortcutsModalOpen,
         setIsShortcutsModalOpen,
+        isMcpDocsOpen,
+        setIsMcpDocsOpen,
+        isInstallModalOpen,
+        setIsInstallModalOpen,
       }}
     >
       {children}

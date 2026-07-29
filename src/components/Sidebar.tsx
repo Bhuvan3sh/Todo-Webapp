@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Plus, ListTodo, Calendar, Clock, Edit2, Trash2, X, FolderPlus } from 'lucide-react';
+import { Plus, ListTodo, Calendar, Clock, Edit2, Trash2, X, FolderPlus, Sun, Layers, Bot } from 'lucide-react';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -14,7 +14,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     setIsListModalOpen,
     setEditingList,
     deleteList,
+    setIsMcpDocsOpen,
   } = useApp();
+
+  const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+  const todayTasksCount = state.tasks.filter((t) => {
+    if (t.is_completed || !t.due_date) return false;
+    const d = new Date(t.due_date);
+    const taskDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return taskDateStr === todayStr || d < new Date();
+  }).length;
 
   const getListStats = (listId: string) => {
     const listTasks = state.tasks.filter((t) => t.list_id === listId);
@@ -54,8 +63,87 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
   const content = (
     <div className="flex flex-col h-full">
+      
+      {/* Smart Views Navigation */}
+      <div className="mb-5 space-y-1.5 pb-4 border-b border-gray-300/30">
+        <h2 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 px-1">
+          Views & Tools
+        </h2>
+
+        {/* Today's Tasks */}
+        <button
+          onClick={() => {
+            dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
+            onCloseMobile?.();
+          }}
+          className={`w-full p-2.5 rounded-neu-card flex items-center justify-between text-xs font-bold transition-all ${
+            state.activeView === 'today'
+              ? 'neu-pressed text-amber-600 border-l-4 border-amber-500'
+              : 'neu-raised text-gray-700 hover:text-amber-600'
+          }`}
+        >
+          <div className="flex items-center space-x-2.5">
+            <Sun className="w-4 h-4 text-amber-500" />
+            <span>Today's Tasks</span>
+          </div>
+          {todayTasksCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/15 text-amber-700 font-extrabold">
+              {todayTasksCount}
+            </span>
+          )}
+        </button>
+
+        {/* Upcoming Tasks */}
+        <button
+          onClick={() => {
+            dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'upcoming' });
+            onCloseMobile?.();
+          }}
+          className={`w-full p-2.5 rounded-neu-card flex items-center justify-between text-xs font-bold transition-all ${
+            state.activeView === 'upcoming'
+              ? 'neu-pressed text-[#6C63FF] border-l-4 border-[#6C63FF]'
+              : 'neu-raised text-gray-700 hover:text-[#6C63FF]'
+          }`}
+        >
+          <div className="flex items-center space-x-2.5">
+            <Calendar className="w-4 h-4 text-[#6C63FF]" />
+            <span>Upcoming Tasks</span>
+          </div>
+        </button>
+
+        {/* All Tasks */}
+        <button
+          onClick={() => {
+            dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'all' });
+            onCloseMobile?.();
+          }}
+          className={`w-full p-2.5 rounded-neu-card flex items-center justify-between text-xs font-bold transition-all ${
+            state.activeView === 'all'
+              ? 'neu-pressed text-indigo-600 border-l-4 border-indigo-500'
+              : 'neu-raised text-gray-700 hover:text-indigo-600'
+          }`}
+        >
+          <div className="flex items-center space-x-2.5">
+            <Layers className="w-4 h-4 text-indigo-500" />
+            <span>All Tasks</span>
+          </div>
+        </button>
+
+        {/* Connect AI / MCP Integration Docs */}
+        <button
+          onClick={() => {
+            setIsMcpDocsOpen(true);
+            onCloseMobile?.();
+          }}
+          className="w-full p-2.5 rounded-neu-card flex items-center space-x-2.5 text-xs font-bold text-[#6C63FF] neu-raised hover:bg-[#6C63FF]/5 transition-all mt-1"
+        >
+          <Bot className="w-4 h-4" />
+          <span>Connect AI (MCP Docs)</span>
+        </button>
+      </div>
+
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-300/30">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-300/30">
         <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
           <ListTodo className="w-4 h-4 text-[#6C63FF]" />
           Your Lists ({state.lists.length})

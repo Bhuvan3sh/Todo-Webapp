@@ -18,6 +18,8 @@ import {
   Plus,
   Bell,
   BellOff,
+  Download,
+  Bot,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -29,7 +31,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleMobileSidebar,
   isMobileSidebarOpen,
 }) => {
-  const { state, dispatch, setIsShortcutsModalOpen, setIsTaskModalOpen, setEditingTask, showToast } = useApp();
+  const {
+    state,
+    dispatch,
+    setIsShortcutsModalOpen,
+    setIsTaskModalOpen,
+    setEditingTask,
+    setIsMcpDocsOpen,
+    setIsInstallModalOpen,
+    showToast,
+  } = useApp();
   const { user, signOut, isDemoMode } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -171,6 +182,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <BellOff className="w-4 h-4 text-gray-400" />
             )}
+          </button>
+
+          {/* Install PWA / Mobile Shortcut Button */}
+          <button
+            onClick={() => setIsInstallModalOpen(true)}
+            title="Install App Shortcut (Android / iOS)"
+            className="neu-raised neu-button px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full sm:rounded-neu-btn text-xs font-bold text-gray-700 hover:text-[#6C63FF] flex items-center gap-1.5 transition-all"
+          >
+            <Download className="w-4 h-4 text-[#6C63FF]" />
+            <span className="hidden sm:inline">Install</span>
+          </button>
+
+          {/* Connect AI / MCP Docs Button */}
+          <button
+            onClick={() => setIsMcpDocsOpen(true)}
+            title="Connect AI Agent / MCP Server Docs"
+            className="neu-raised neu-button px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full sm:rounded-neu-btn text-xs font-bold text-gray-700 hover:text-[#6C63FF] flex items-center gap-1.5 transition-all"
+          >
+            <Bot className="w-4 h-4 text-[#6C63FF]" />
+            <span className="hidden md:inline">Connect AI</span>
           </button>
 
           {/* Shortcuts Trigger */}

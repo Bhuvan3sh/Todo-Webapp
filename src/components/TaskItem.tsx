@@ -16,6 +16,7 @@ import {
 
 interface TaskItemProps {
   task: Task;
+  showListBadge?: boolean;
 }
 
 const formatForDateTimeInput = (dateStr?: string | null) => {
@@ -42,9 +43,11 @@ const formatDueDateDisplay = (dateStr?: string | null) => {
   return `${dateFormatted} at ${timeFormatted}`;
 };
 
-export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
-  const { updateTask, deleteTask } = useApp();
+export const TaskItem: React.FC<TaskItemProps> = ({ task, showListBadge }) => {
+  const { state, updateTask, deleteTask } = useApp();
   const [isEditingInline, setIsEditingInline] = useState(false);
+
+  const parentList = state.lists.find((l) => l.id === task.list_id);
 
   // Inline editing fields state
   const [inlineTitle, setInlineTitle] = useState(task.title);
@@ -258,8 +261,20 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             </div>
           )}
 
-          {/* Bottom Row: Priority & Due Date + Time Badges */}
+          {/* Bottom Row: Priority, List Badge & Due Date + Time Badges */}
           <div className="pl-9 pt-0.5 flex flex-wrap items-center gap-2">
+            {(showListBadge || state.activeView !== 'list') && parentList && (
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5 bg-gray-200/80 text-gray-700 border border-gray-300/40"
+              >
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: parentList.color || '#6C63FF' }}
+                />
+                {parentList.title}
+              </span>
+            )}
+
             <span
               className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full ${
                 task.priority === 'high'
