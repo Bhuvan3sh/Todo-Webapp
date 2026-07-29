@@ -4,7 +4,7 @@ import { URL } from "url";
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+  res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
   if (req.method === "OPTIONS") {
@@ -19,15 +19,13 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   const requestUrl = new URL(req.url || "/", baseUrl);
   const path = requestUrl.pathname.toLowerCase();
-  const typeParam = requestUrl.searchParams.get("type");
+  const typeParam = requestUrl.searchParams.get("type") || "";
+  const pathParam = requestUrl.searchParams.get("path") || "";
 
-  const isProtectedResource =
-    typeParam === "protected-resource" ||
-    path.includes("oauth-protected-resource");
+  const fullPathStr = `${path} ${typeParam} ${pathParam}`;
 
-  const isAuthServer =
-    typeParam === "auth-server" ||
-    path.includes("oauth-authorization-server");
+  const isProtectedResource = fullPathStr.includes("oauth-protected-resource");
+  const isAuthServer = fullPathStr.includes("oauth-authorization-server");
 
   if (isProtectedResource) {
     const doc = {
@@ -56,13 +54,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // Generic .well-known fallback - ALWAYS return valid JSON (never HTML!)
+  // Fallback for any other .well-known endpoint
   res.writeHead(200);
   res.end(
     JSON.stringify({
-      message: "Task Buddy Well-Known Discovery Service",
+      message: "Task Buddy Well-Known Service",
       endpoint: path,
-      mcp_endpoint: `${baseUrl}/api/mcp`
     })
   );
 }
