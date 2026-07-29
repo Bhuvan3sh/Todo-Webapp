@@ -23,6 +23,18 @@ function getSupabase(userToken?: string) {
   });
 }
 
+// Extract user ID from the Supabase JWT (the 'sub' claim)
+function getUserIdFromToken(token?: string): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString());
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 function createTaskBuddyServer(userToken?: string): McpServer {
   const server = new McpServer({
     name: "task-buddy-mcp",
@@ -52,9 +64,11 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     },
     async ({ title, description, color, deadline }) => {
       const supabase = getSupabase(userToken);
+      const userId = getUserIdFromToken(userToken);
+      if (!userId) throw new Error("Authentication required. Please reconnect your Task Buddy account.");
       const { data, error } = await supabase
         .from("lists")
-        .insert([{ title, description: description || null, color: color || "#6C63FF", deadline: deadline || null }])
+        .insert([{ title, description: description || null, color: color || "#6C63FF", deadline: deadline || null, user_id: userId }])
         .select();
       if (error) throw new Error(error.message);
       return { content: [{ type: "text" as const, text: `List created!\n${JSON.stringify(data[0], null, 2)}` }] };
@@ -98,9 +112,11 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     },
     async ({ title, description, list_id, priority, due_date }) => {
       const supabase = getSupabase(userToken);
+      const userId = getUserIdFromToken(userToken);
+      if (!userId) throw new Error("Authentication required. Please reconnect your Task Buddy account.");
       const { data, error } = await supabase
         .from("tasks")
-        .insert([{ title, description: description || null, list_id: list_id || null, priority: priority || "medium", due_date: due_date || null, is_completed: false, position: 0 }])
+        .insert([{ title, description: description || null, list_id: list_id || null, priority: priority || "medium", due_date: due_date || null, is_completed: false, position: 0, user_id: userId }])
         .select();
       if (error) throw new Error(error.message);
       return { content: [{ type: "text" as const, text: `Task created!\n${JSON.stringify(data[0], null, 2)}` }] };
