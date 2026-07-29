@@ -1,18 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
+import { encryptAuthCode } from "./_crypto";
 import { URL } from "url";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://gjduzipwtybvzvgefrza.supabase.co";
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
-
-// In-memory auth code store (maps auth_code → { access_token, refresh_token, expires_at })
-// In serverless, this works within a single invocation chain.
-// For production persistence, use a database or KV store.
-const authCodes: Map<string, { access_token: string; refresh_token: string; expires_at: number; redirect_uri: string }> = new Map();
-
-// Make authCodes accessible to the token endpoint via globalThis
-(globalThis as any).__taskBuddyAuthCodes = (globalThis as any).__taskBuddyAuthCodes || new Map();
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -63,20 +55,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       width: 100%;
       box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff;
     }
-    .logo {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-    .logo h1 {
-      font-size: 24px;
-      font-weight: 800;
-      color: #333;
-    }
-    .logo p {
-      font-size: 14px;
-      color: #666;
-      margin-top: 8px;
-    }
+    .logo { text-align: center; margin-bottom: 24px; }
+    .logo h1 { font-size: 24px; font-weight: 800; color: #333; }
+    .logo p { font-size: 14px; color: #666; margin-top: 8px; }
     .badge {
       display: inline-block;
       background: #6C63FF20;
@@ -185,7 +166,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // POST → Process login, generate auth code, redirect back
+  // POST → Process login, encrypt tokens into auth code, redirect back
   if (req.method === "POST") {
     const body = await new Promise<string>((resolve) => {
       let data = "";
@@ -193,7 +174,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       req.on("end", () => resolve(data));
     });
 
-    // Parse URL-encoded form data
     const params = new URLSearchParams(body);
     const email = params.get("email") || "";
     const password = params.get("password") || "";
@@ -205,13 +185,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     if (!email || !password) {
       const qs = new URLSearchParams({
-        client_id: formClientId,
-        redirect_uri: formRedirectUri,
-        state: formState,
-        code_challenge: formCodeChallenge,
-        code_challenge_method: formCodeChallengeMethod,
-        response_type: "code",
-        error: "Email and password are required.",
+        client_id: formClientId, redirect_uri: formRedirectUri, state: formState,
+        code_challenge: formCodeChallenge, code_challenge_method: formCodeChallengeMethod,
+        response_type: "code", error: "Email and password are required.",
       });
       res.writeHead(302, { Location: `/api/oauth/authorize?${qs.toString()}` });
       res.end();
@@ -223,39 +199,30 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       auth: { persistSession: false },
     });
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError || !authData.session) {
       const qs = new URLSearchParams({
-        client_id: formClientId,
-        redirect_uri: formRedirectUri,
-        state: formState,
-        code_challenge: formCodeChallenge,
-        code_challenge_method: formCodeChallengeMethod,
-        response_type: "code",
-        error: authError?.message || "Invalid email or password. Please try again.",
+        client_id: formClientId, redirect_uri: formRedirectUri, state: formState,
+        code_challenge: formCodeChallenge, code_challenge_method: formCodeChallengeMethod,
+        response_type: "code", error: authError?.message || "Invalid email or password.",
       });
       res.writeHead(302, { Location: `/api/oauth/authorize?${qs.toString()}` });
       res.end();
       return;
     }
 
-    // Generate an auth code and store the tokens
-    const authCode = crypto.randomBytes(32).toString("hex");
-    const globalCodes = (globalThis as any).__taskBuddyAuthCodes as Map<string, any>;
-    globalCodes.set(authCode, {
+    // Encrypt the Supabase tokens INTO the auth code itself
+    // This way the token endpoint can decrypt it without shared state
+    const authCode = encryptAuthCode({
       access_token: authData.session.access_token,
       refresh_token: authData.session.refresh_token,
-      expires_at: Date.now() + 300_000, // Code expires in 5 minutes
-      redirect_uri: formRedirectUri,
       code_challenge: formCodeChallenge,
       code_challenge_method: formCodeChallengeMethod,
+      redirect_uri: formRedirectUri,
     });
 
-    // Redirect back to the AI client with the auth code
+    // URL-encode the auth code (it contains colons)
     const redirectUrl = new URL(formRedirectUri);
     redirectUrl.searchParams.set("code", authCode);
     if (formState) redirectUrl.searchParams.set("state", formState);

@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
+import { decryptAuthCode } from "./_crypto";
 import crypto from "crypto";
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
@@ -27,7 +28,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   let grant_type = "";
   let code = "";
-  let redirect_uri = "";
   let code_verifier = "";
   let refresh_token = "";
 
@@ -37,7 +37,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const params = new URLSearchParams(body);
     grant_type = params.get("grant_type") || "";
     code = params.get("code") || "";
-    redirect_uri = params.get("redirect_uri") || "";
     code_verifier = params.get("code_verifier") || "";
     refresh_token = params.get("refresh_token") || "";
   } else {
@@ -45,7 +44,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       const parsed = JSON.parse(body);
       grant_type = parsed.grant_type || "";
       code = parsed.code || "";
-      redirect_uri = parsed.redirect_uri || "";
       code_verifier = parsed.code_verifier || "";
       refresh_token = parsed.refresh_token || "";
     } catch {
@@ -55,8 +53,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
   }
 
-  const globalCodes = (globalThis as any).__taskBuddyAuthCodes as Map<string, any> | undefined;
-
   // ─── Authorization Code Grant ──────────────────────────────
   if (grant_type === "authorization_code") {
     if (!code) {
@@ -65,18 +61,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    const stored = globalCodes?.get(code);
+    // Decrypt the auth code to extract tokens
+    const stored = decryptAuthCode(code);
     if (!stored) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "invalid_grant", error_description: "Invalid or expired authorization code" }));
-      return;
-    }
-
-    // Check expiry
-    if (Date.now() > stored.expires_at) {
-      globalCodes?.delete(code);
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "invalid_grant", error_description: "Authorization code expired" }));
       return;
     }
 
@@ -93,9 +82,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return;
       }
     }
-
-    // Consume the code (one-time use)
-    globalCodes?.delete(code);
 
     // Return the Supabase JWT tokens
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -119,7 +105,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    // Use Supabase to refresh the session
     const { createClient } = await import("@supabase/supabase-js");
     const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://gjduzipwtybvzvgefrza.supabase.co";
     const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
