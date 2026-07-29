@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import type { IncomingMessage, ServerResponse } from "http";
 
 const SUPABASE_URL =
@@ -13,7 +14,6 @@ const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   "";
 
-// Create a user-scoped Supabase client using their OAuth JWT
 function getSupabase(userToken?: string) {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false },
@@ -23,13 +23,13 @@ function getSupabase(userToken?: string) {
   });
 }
 
-// Build the MCP server with all tools scoped to the authenticated user
 function createTaskBuddyServer(userToken?: string): McpServer {
   const server = new McpServer({
     name: "task-buddy-mcp",
     version: "1.0.0",
   });
 
+  // ─── LIST LISTS ──────────────────────────────────────────
   server.tool("list_lists", "Fetch all todo lists in Task Buddy", {}, async () => {
     const supabase = getSupabase(userToken);
     const { data, error } = await supabase
@@ -40,14 +40,15 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     return { content: [{ type: "text" as const, text: JSON.stringify(data || [], null, 2) }] };
   });
 
+  // ─── CREATE LIST ─────────────────────────────────────────
   server.tool(
     "create_list",
     "Create a new list for grouping tasks",
     {
-      title: { type: "string", description: "Name of the list (e.g. Work, Personal, Shopping)" },
-      description: { type: "string", description: "Optional description" },
-      color: { type: "string", description: "Hex color code (default: #6C63FF)" },
-      deadline: { type: "string", description: "Optional deadline in ISO format" },
+      title: z.string().describe("Name of the list (e.g. Work, Personal, Shopping)"),
+      description: z.string().optional().describe("Optional description"),
+      color: z.string().optional().describe("Hex color code (default: #6C63FF)"),
+      deadline: z.string().optional().describe("Optional deadline in ISO format"),
     },
     async ({ title, description, color, deadline }) => {
       const supabase = getSupabase(userToken);
@@ -60,13 +61,14 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     }
   );
 
+  // ─── LIST TASKS ──────────────────────────────────────────
   server.tool(
     "list_tasks",
     "Fetch tasks with optional filtering by list, status, or priority",
     {
-      list_id: { type: "string", description: "Filter by list ID" },
-      is_completed: { type: "boolean", description: "Filter by completed (true) or pending (false)" },
-      priority: { type: "string", description: "Filter by priority: low, medium, high" },
+      list_id: z.string().optional().describe("Filter by list ID"),
+      is_completed: z.boolean().optional().describe("Filter by completed (true) or pending (false)"),
+      priority: z.enum(["low", "medium", "high"]).optional().describe("Filter by priority level"),
     },
     async ({ list_id, is_completed, priority }) => {
       const supabase = getSupabase(userToken);
@@ -83,15 +85,16 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     }
   );
 
+  // ─── CREATE TASK ─────────────────────────────────────────
   server.tool(
     "create_task",
     "Add a new task to Task Buddy",
     {
-      title: { type: "string", description: "Task title" },
-      description: { type: "string", description: "Detailed description or notes" },
-      list_id: { type: "string", description: "ID of the list this task belongs to" },
-      priority: { type: "string", description: "Priority level: low, medium, high (default: medium)" },
-      due_date: { type: "string", description: "Due date/time in ISO format (e.g. 2026-07-30T17:00:00Z)" },
+      title: z.string().describe("Task title"),
+      description: z.string().optional().describe("Detailed description or notes"),
+      list_id: z.string().optional().describe("ID of the list this task belongs to"),
+      priority: z.enum(["low", "medium", "high"]).optional().describe("Priority level (default: medium)"),
+      due_date: z.string().optional().describe("Due date/time in ISO format (e.g. 2026-07-30T17:00:00Z)"),
     },
     async ({ title, description, list_id, priority, due_date }) => {
       const supabase = getSupabase(userToken);
@@ -104,32 +107,39 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     }
   );
 
+  // ─── UPDATE TASK ─────────────────────────────────────────
   server.tool(
     "update_task",
     "Update an existing task by its ID",
     {
-      id: { type: "string", description: "ID of the task to update" },
-      title: { type: "string", description: "Updated title" },
-      description: { type: "string", description: "Updated description" },
-      priority: { type: "string", description: "Updated priority: low, medium, high" },
-      due_date: { type: "string", description: "Updated due date ISO string" },
-      is_completed: { type: "boolean", description: "Mark completed status" },
+      id: z.string().describe("ID of the task to update"),
+      title: z.string().optional().describe("Updated title"),
+      description: z.string().optional().describe("Updated description"),
+      priority: z.enum(["low", "medium", "high"]).optional().describe("Updated priority"),
+      due_date: z.string().optional().describe("Updated due date ISO string"),
+      is_completed: z.boolean().optional().describe("Mark completed status"),
     },
-    async ({ id, ...updates }) => {
+    async ({ id, title, description, priority, due_date, is_completed }) => {
       const supabase = getSupabase(userToken);
-      const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([, v]) => v !== undefined));
-      const { data, error } = await supabase.from("tasks").update(cleanUpdates).eq("id", id).select();
+      const updates: Record<string, any> = {};
+      if (title !== undefined) updates.title = title;
+      if (description !== undefined) updates.description = description;
+      if (priority !== undefined) updates.priority = priority;
+      if (due_date !== undefined) updates.due_date = due_date;
+      if (is_completed !== undefined) updates.is_completed = is_completed;
+      const { data, error } = await supabase.from("tasks").update(updates).eq("id", id).select();
       if (error) throw new Error(error.message);
       return { content: [{ type: "text" as const, text: `Task updated!\n${JSON.stringify(data[0], null, 2)}` }] };
     }
   );
 
+  // ─── COMPLETE TASK ───────────────────────────────────────
   server.tool(
     "complete_task",
     "Mark a task as completed or uncompleted",
     {
-      id: { type: "string", description: "Task ID to complete" },
-      is_completed: { type: "boolean", description: "true to complete, false to mark pending (default: true)" },
+      id: z.string().describe("Task ID to complete"),
+      is_completed: z.boolean().optional().describe("true to complete, false to mark pending (default: true)"),
     },
     async ({ id, is_completed }) => {
       const supabase = getSupabase(userToken);
@@ -140,10 +150,11 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     }
   );
 
+  // ─── DELETE TASK ─────────────────────────────────────────
   server.tool(
     "delete_task",
     "Delete a task by its ID",
-    { id: { type: "string", description: "ID of the task to delete" } },
+    { id: z.string().describe("ID of the task to delete") },
     async ({ id }) => {
       const supabase = getSupabase(userToken);
       const { error } = await supabase.from("tasks").delete().eq("id", id);
@@ -152,10 +163,11 @@ function createTaskBuddyServer(userToken?: string): McpServer {
     }
   );
 
+  // ─── SEARCH TASKS ────────────────────────────────────────
   server.tool(
     "search_tasks",
     "Search tasks by matching text in title or description",
-    { query: { type: "string", description: "Search keyword" } },
+    { query: z.string().describe("Search keyword") },
     async ({ query }) => {
       const supabase = getSupabase(userToken);
       const { data, error } = await supabase
@@ -173,7 +185,6 @@ function createTaskBuddyServer(userToken?: string): McpServer {
 
 // ─── Vercel Serverless Function Handler ────────────────────
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Mcp-Session-Id");
@@ -189,7 +200,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   const authHeader = req.headers.authorization || "";
   const userToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
-  // GET — return server info
   if (req.method === "GET") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
@@ -210,14 +220,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // POST — handle MCP JSON-RPC messages
   if (req.method === "POST") {
     try {
       const mcpServer = createTaskBuddyServer(userToken);
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
       });
-
       await mcpServer.connect(transport);
       await transport.handleRequest(req, res);
     } catch (err: any) {
@@ -229,7 +237,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // DELETE — session termination (no-op in stateless mode)
   if (req.method === "DELETE") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ ok: true }));
