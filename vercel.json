@@ -5,8 +5,8 @@
     }
   },
   "rewrites": [
-    { "source": "/.well-known/:path*", "destination": "/api/well-known?path=:path*" },
-    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/.well-known/(.*)", "destination": "/api/well-known?path=$1" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
