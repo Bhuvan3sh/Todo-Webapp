@@ -231,19 +231,28 @@ export const McpDocsModal: React.FC = () => {
           {activeTab === 'chatgpt' && (
             <div className="neu-sunken p-4 rounded-neu-card space-y-3 text-xs text-gray-700">
               <h5 className="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                Connect Task Buddy to ChatGPT (Custom GPT)
+                Connect Task Buddy to ChatGPT (New Plugin / Custom Tool)
               </h5>
-              <ol className="list-decimal list-inside space-y-1.5 text-gray-600">
-                <li>Go to <a href="https://chat.openai.com" target="_blank" rel="noreferrer" className="text-emerald-600 underline font-semibold">ChatGPT</a> → <strong>Explore GPTs</strong> → <strong>Create a GPT</strong>.</li>
-                <li>In the GPT Builder, click <strong>Configure</strong> tab.</li>
-                <li>Scroll down to <strong>Actions</strong> and click <strong>Create new action</strong>.</li>
-                <li>Click <strong>Import from URL</strong> and paste:
-                  <div className="my-1 font-mono text-xs text-emerald-700 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
-                    {openApiUrl}
+              <ol className="list-decimal list-inside space-y-2 text-gray-600">
+                <li>Go to <a href="https://chatgpt.com" target="_blank" rel="noreferrer" className="text-emerald-600 underline font-semibold">ChatGPT</a> → <strong>Settings</strong> → <strong>Developer Tools</strong> → <strong>New Plugin</strong>.</li>
+                <li>Set <strong>Name</strong>: <code className="bg-gray-200 px-1.5 py-0.5 rounded font-mono text-gray-800">Task Buddy</code></li>
+                <li>Under <strong>Connection</strong>, select <strong>Server URL</strong> and enter:
+                  <div className="my-1.5 font-mono text-xs text-emerald-700 bg-emerald-500/10 p-2 rounded border border-emerald-500/20 break-all flex items-center justify-between">
+                    <span>{mcpUrl}</span>
+                    <button
+                      onClick={() => handleCopy(mcpUrl, 'Server URL')}
+                      className="ml-2 px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold hover:bg-emerald-700"
+                    >
+                      Copy URL
+                    </button>
                   </div>
                 </li>
-                <li>ChatGPT will auto-import all Task Buddy endpoints. Save and publish your Custom GPT!</li>
+                <li>Under <strong>Authentication</strong>, select <strong>OAuth</strong> or <strong>None</strong>.</li>
+                <li>Check <em>"I understand and want to continue"</em> and click <strong>Create</strong>.</li>
               </ol>
+              <p className="text-[11px] text-gray-500 pt-1 border-t border-gray-300/30">
+                💡 <em>Alternative for Custom GPT Actions: Use OpenAPI spec URL <code className="font-mono text-gray-700">{openApiUrl}</code> in GPT Builder.</em>
+              </p>
             </div>
           )}
 

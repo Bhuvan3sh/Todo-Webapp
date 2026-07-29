@@ -25,14 +25,17 @@ Connect **Task Buddy** to **any AI agent** — Claude.ai, ChatGPT, Cursor, Winds
    ```
 4. Done! Claude will discover all 8 Task Buddy tools automatically.
 
-### ChatGPT (Custom GPT)
-1. Go to [ChatGPT](https://chat.openai.com) → **Explore GPTs** → **Create a GPT**.
-2. Click **Configure** → **Create new action** → **Import from URL**.
-3. Enter:
+### ChatGPT (Plugin / Custom Tool)
+1. Go to [ChatGPT](https://chatgpt.com) → **Settings** → **Developer Tools** → **New Plugin**.
+2. Set **Name**: `Task Buddy`.
+3. Under **Connection**, select **Server URL** and enter:
    ```
-   https://todo.theorave.in/openapi.json
+   https://todo.theorave.in/api/mcp
    ```
-4. ChatGPT will auto-import all Task Buddy tools.
+4. Select **Authentication** (OAuth or None), check *"I understand and want to continue"*, and click **Create**.
+5. Done! ChatGPT connects directly to Task Buddy's MCP server.
+
+*(Note: For Custom GPT Actions, you can also import `https://todo.theorave.in/openapi.json`)*
 
 ### Any MCP-Compatible Web Client
 Just point it to:
