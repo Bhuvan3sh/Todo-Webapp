@@ -1,29 +1,14 @@
 {
   "functions": {
-    "api/mcp.ts": {
-      "maxDuration": 60
-    },
-    "api/well-known.ts": {
-      "maxDuration": 15
-    },
-    "api/oauth/authorize.ts": {
+    "api/**/*.ts": {
       "maxDuration": 30
-    },
-    "api/oauth/token.ts": {
-      "maxDuration": 15
-    },
-    "api/oauth/register.ts": {
-      "maxDuration": 10
-    },
-    "api/oauth/jwks.ts": {
-      "maxDuration": 10
     }
   },
   "rewrites": [
-    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/well-known?type=protected-resource" },
-    { "source": "/.well-known/oauth-protected-resource/mcp", "destination": "/api/well-known?type=protected-resource" },
-    { "source": "/.well-known/oauth-authorization-server", "destination": "/api/well-known?type=auth-server" },
-    { "source": "/.well-known/oauth-authorization-server/mcp", "destination": "/api/well-known?type=auth-server" },
+    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/.well-known/oauth-protected-resource" },
+    { "source": "/.well-known/oauth-protected-resource/mcp", "destination": "/api/.well-known/oauth-protected-resource/mcp" },
+    { "source": "/.well-known/oauth-authorization-server", "destination": "/api/.well-known/oauth-authorization-server" },
+    { "source": "/.well-known/oauth-authorization-server/mcp", "destination": "/api/.well-known/oauth-authorization-server/mcp" },
     { "source": "/.well-known/:path*", "destination": "/api/well-known?path=:path*" },
     { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
@@ -34,7 +19,7 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Accept, Mcp-Session-Id" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
         { "key": "Access-Control-Expose-Headers", "value": "Mcp-Session-Id" }
       ]
     },
@@ -43,7 +28,7 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Accept" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
         { "key": "Content-Type", "value": "application/json; charset=utf-8" }
       ]
     }

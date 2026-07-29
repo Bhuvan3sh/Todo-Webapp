@@ -247,12 +247,13 @@ export const McpDocsModal: React.FC = () => {
                     </button>
                   </div>
                 </li>
-                <li>Under <strong>Authentication</strong>, select <strong>OAuth</strong> or <strong>None</strong>.</li>
+                <li>Under <strong>Authentication</strong>, select <strong>OAuth</strong> (ChatGPT auto-discovers Task Buddy's RFC 8414 & RFC 9728 endpoints) or <strong>None</strong> for unauthenticated access.</li>
                 <li>Check <em>"I understand and want to continue"</em> and click <strong>Create</strong>.</li>
               </ol>
-              <p className="text-[11px] text-gray-500 pt-1 border-t border-gray-300/30">
-                💡 <em>Alternative for Custom GPT Actions: Use OpenAPI spec URL <code className="font-mono text-gray-700">{openApiUrl}</code> in GPT Builder.</em>
-              </p>
+              <div className="text-[11px] text-gray-500 pt-2 border-t border-gray-300/30 space-y-1">
+                <p>⚡ <strong>OAuth Discovery Endpoint:</strong> <code className="font-mono text-gray-700">https://todo.theorave.in/.well-known/oauth-protected-resource</code></p>
+                <p>💡 <em>Alternative for Custom GPT Actions: Import OpenAPI spec URL <code className="font-mono text-gray-700">{openApiUrl}</code> in GPT Builder.</em></p>
+              </div>
             </div>
           )}
 
