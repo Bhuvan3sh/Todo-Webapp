@@ -1,0 +1,59 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Task Buddy AI API",
+    "description": "API for ChatGPT and AI Agents to manage tasks and todo lists on Task Buddy (todo.theorave.in)",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://todo.theorave.in"
+    }
+  ],
+  "paths": {
+    "/api/mcp": {
+      "get": {
+        "summary": "Get available AI tools and status",
+        "operationId": "getToolsInfo",
+        "responses": {
+          "200": {
+            "description": "List of available tools"
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute Task Buddy action",
+        "operationId": "executeTaskAction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["list_tasks", "create_task", "complete_task", "delete_task", "list_lists"],
+                    "description": "The action to execute"
+                  },
+                  "title": { "type": "string", "description": "Task title (for create_task)" },
+                  "description": { "type": "string", "description": "Task description" },
+                  "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+                  "due_date": { "type": "string", "description": "ISO date string" },
+                  "id": { "type": "string", "description": "Task ID (for complete_task / delete_task)" },
+                  "is_completed": { "type": "boolean", "description": "Status filter or complete flag" }
+                },
+                "required": ["action"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful action response"
+          }
+        }
+      }
+    }
+  }
+}
