@@ -215,6 +215,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const fetchData = async () => {
       dispatch({ type: 'SET_LOADING', payload: true });
 
+      const savedView = localStorage.getItem(`taskbuddy_active_view_${user.id}`) as ViewMode | null;
+      const savedListId = localStorage.getItem(`taskbuddy_active_list_${user.id}`);
+
       if (isSupabaseConfigured() && supabase) {
         try {
           const { data: listsData } = await supabase
@@ -232,11 +235,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const loadedLists: List[] = listsData || [];
           const loadedTasks: Task[] = tasksData || [];
 
+          const targetListId = (savedListId && loadedLists.some((l) => l.id === savedListId))
+            ? savedListId
+            : (loadedLists[0]?.id || null);
+          const targetView: ViewMode = savedView || 'today';
+
           dispatch({ type: 'SET_LISTS', payload: loadedLists });
           dispatch({ type: 'SET_TASKS', payload: loadedTasks });
-          dispatch({ type: 'SET_ACTIVE_LIST', payload: loadedLists[0]?.id || null });
-          // Default launch view is ALWAYS Today page
-          dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
+          if (targetListId) {
+            dispatch({ type: 'SET_ACTIVE_LIST', payload: targetListId });
+          }
+          dispatch({ type: 'SET_ACTIVE_VIEW', payload: targetView });
         } catch (error) {
           console.error('Error fetching Supabase data:', error);
         }
@@ -247,11 +256,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         let lists: List[] = localLists ? JSON.parse(localLists) : SEED_LISTS;
         let tasks: Task[] = localTasks ? JSON.parse(localTasks) : SEED_TASKS;
 
+        const targetListId = (savedListId && lists.some((l) => l.id === savedListId))
+          ? savedListId
+          : (lists[0]?.id || null);
+        const targetView: ViewMode = savedView || 'today';
+
         dispatch({ type: 'SET_LISTS', payload: lists });
         dispatch({ type: 'SET_TASKS', payload: tasks });
-        dispatch({ type: 'SET_ACTIVE_LIST', payload: lists[0]?.id || null });
-        // Default launch view is ALWAYS Today page
-        dispatch({ type: 'SET_ACTIVE_VIEW', payload: 'today' });
+        if (targetListId) {
+          dispatch({ type: 'SET_ACTIVE_LIST', payload: targetListId });
+        }
+        dispatch({ type: 'SET_ACTIVE_VIEW', payload: targetView });
 
         localStorage.setItem(`neurotask_lists_${user.id}`, JSON.stringify(lists));
         localStorage.setItem(`neurotask_tasks_${user.id}`, JSON.stringify(tasks));
@@ -262,6 +277,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     fetchData();
   }, [user]);
+
+  // Persist current active view & active list to localStorage on navigation so browser reload keeps current page
+  useEffect(() => {
+    if (user && !state.isLoadingData) {
+      localStorage.setItem(`taskbuddy_active_view_${user.id}`, state.activeView);
+      if (state.activeListId) {
+        localStorage.setItem(`taskbuddy_active_list_${user.id}`, state.activeListId);
+      }
+    }
+  }, [user, state.activeView, state.activeListId, state.isLoadingData]);
 
   const showToast = (
     message: string,
