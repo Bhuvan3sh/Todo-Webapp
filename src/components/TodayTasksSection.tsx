@@ -18,17 +18,23 @@ export const TodayTasksSection: React.FC = () => {
     year: 'numeric',
   });
 
-  // Filter tasks for today or overdue
-  const todayTasks = state.tasks.filter((t) => {
-    if (!t.due_date) return false;
-    const taskDate = new Date(t.due_date);
-    const taskDateStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}-${String(taskDate.getDate()).padStart(2, '0')}`;
-    
-    const isTaskToday = taskDateStr === todayStr;
-    const isOverdue = !t.is_completed && taskDate < new Date();
+  // Filter tasks for today or overdue (Sorted in ascending order by date)
+  const todayTasks = state.tasks
+    .filter((t) => {
+      if (!t.due_date) return false;
+      const taskDate = new Date(t.due_date);
+      const taskDateStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}-${String(taskDate.getDate()).padStart(2, '0')}`;
+      
+      const isTaskToday = taskDateStr === todayStr;
+      const isOverdue = !t.is_completed && taskDate < new Date();
 
-    return isTaskToday || isOverdue;
-  });
+      return isTaskToday || isOverdue;
+    })
+    .sort((a, b) => {
+      const dateA = a.due_date ? new Date(a.due_date).getTime() : (a.created_at ? new Date(a.created_at).getTime() : Number.MAX_SAFE_INTEGER);
+      const dateB = b.due_date ? new Date(b.due_date).getTime() : (b.created_at ? new Date(b.created_at).getTime() : Number.MAX_SAFE_INTEGER);
+      return dateA - dateB;
+    });
 
   const completedCount = todayTasks.filter((t) => t.is_completed).length;
   const totalCount = todayTasks.length;

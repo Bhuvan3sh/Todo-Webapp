@@ -184,26 +184,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Install PWA / Mobile Shortcut Button */}
-          <button
-            onClick={() => setIsInstallModalOpen(true)}
-            title="Install App Shortcut (Android / iOS)"
-            className="neu-raised neu-button px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full sm:rounded-neu-btn text-xs font-bold text-gray-700 hover:text-[#6C63FF] flex items-center gap-1.5 transition-all"
-          >
-            <Download className="w-4 h-4 text-[#6C63FF]" />
-            <span className="hidden sm:inline">Install</span>
-          </button>
-
-          {/* Connect AI / MCP Docs Button */}
-          <button
-            onClick={() => setIsMcpDocsOpen(true)}
-            title="Connect AI Agent / MCP Server Docs"
-            className="neu-raised neu-button px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full sm:rounded-neu-btn text-xs font-bold text-gray-700 hover:text-[#6C63FF] flex items-center gap-1.5 transition-all"
-          >
-            <Bot className="w-4 h-4 text-[#6C63FF]" />
-            <span className="hidden md:inline">Connect AI</span>
-          </button>
-
           {/* Shortcuts Trigger */}
           <button
             onClick={() => setIsShortcutsModalOpen(true)}
@@ -211,19 +191,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full neu-raised neu-button items-center justify-center text-gray-600 hover:text-[#6C63FF]"
           >
             <Command className="w-4 h-4" />
-          </button>
-
-          {/* Quick Add Task Button */}
-          <button
-            onClick={() => {
-              setEditingTask(null);
-              setIsTaskModalOpen(true);
-            }}
-            className="neu-accent-button w-9 h-9 sm:w-auto sm:px-3 sm:py-2 rounded-full sm:rounded-neu-btn font-bold text-xs flex items-center justify-center gap-1 shadow-sm"
-            title="Add Task"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span className="hidden sm:inline">Add Task</span>
           </button>
 
           {/* User Email & Logout */}

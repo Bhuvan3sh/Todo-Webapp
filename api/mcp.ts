@@ -190,7 +190,8 @@ function createTaskBuddyServer(userToken?: string): McpServer {
         .from("tasks")
         .select("id, title, description, is_completed, priority, due_date, created_at")
         .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-        .order("created_at", { ascending: false });
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true });
       if (error) throw new Error(error.message);
       return { content: [{ type: "text" as const, text: JSON.stringify(data || [], null, 2) }] };
     }

@@ -14,6 +14,7 @@ import { InstallPromptModal } from '../components/InstallPrompt';
 import { McpDocsModal } from '../components/McpDocsModal';
 import { TodayTasksSection } from '../components/TodayTasksSection';
 import { exportListToPdf } from '../lib/pdfExport';
+import { Task } from '../types';
 
 import {
   DndContext,
@@ -62,12 +63,13 @@ export const Dashboard: React.FC = () => {
   const { activeListId, activeView, lists, tasks, searchQuery, isLoadingData } = state;
   const activeList = lists.find((l) => l.id === activeListId);
 
-  // Filter tasks based on activeView or activeListId
+  // Filter tasks based on activeView or activeListId (Always sorted in ascending order by date)
   const currentViewTasks = React.useMemo(() => {
+    let result: Task[] = [];
     if (activeView === 'today') {
       const today = new Date();
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      return tasks.filter((t) => {
+      result = tasks.filter((t) => {
         if (!t.due_date) return false;
         const taskDate = new Date(t.due_date);
         const taskDateStr = `${taskDate.getFullYear()}-${String(taskDate.getMonth() + 1).padStart(2, '0')}-${String(taskDate.getDate()).padStart(2, '0')}`;
@@ -75,15 +77,22 @@ export const Dashboard: React.FC = () => {
       });
     } else if (activeView === 'upcoming') {
       const now = new Date();
-      return tasks.filter((t) => {
+      result = tasks.filter((t) => {
         if (!t.due_date || t.is_completed) return false;
         return new Date(t.due_date) > now;
       });
     } else if (activeView === 'all') {
-      return tasks;
+      result = tasks;
     } else {
-      return tasks.filter((t) => t.list_id === activeListId);
+      result = tasks.filter((t) => t.list_id === activeListId);
     }
+
+    // Sort ascending by due_date, then created_at
+    return [...result].sort((a, b) => {
+      const dateA = a.due_date ? new Date(a.due_date).getTime() : (a.created_at ? new Date(a.created_at).getTime() : Number.MAX_SAFE_INTEGER);
+      const dateB = b.due_date ? new Date(b.due_date).getTime() : (b.created_at ? new Date(b.created_at).getTime() : Number.MAX_SAFE_INTEGER);
+      return dateA - dateB;
+    });
   }, [activeView, activeListId, tasks]);
 
   // Search filter across tasks
