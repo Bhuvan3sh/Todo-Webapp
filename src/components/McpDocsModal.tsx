@@ -92,13 +92,13 @@ export const McpDocsModal: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base sm:text-xl font-bold text-gray-800 flex items-center gap-2">
-                Connect AI Agent / MCP Server
+                Connect AI
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#6C63FF]/10 text-[#6C63FF]">
-                  Model Context Protocol
+                  Claude MCP Priority
                 </span>
               </h3>
               <p className="text-xs text-gray-500 font-medium">
-                Manage Task Buddy using natural language from Claude, ChatGPT, Cursor, and more.
+                Connect Claude, ChatGPT, Cursor, and AI agents directly to your Task Buddy database via Model Context Protocol.
               </p>
             </div>
           </div>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "199265207830",
+    "project_id": "task-buddy-d05f7",
+    "storage_bucket": "task-buddy-d05f7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199265207830:android:9d934ad66732633d539737",
+        "android_client_info": {
+          "package_name": "com.taskbuddy.task_buddy_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjb52d3yZQtJqQFiyr3H4iMa8hOng_9ok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

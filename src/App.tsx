@@ -6,6 +6,8 @@ import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
+import { McpDocsPage } from './pages/McpDocsPage';
+import { SharePage } from './pages/SharePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export const App: React.FC = () => {
@@ -17,6 +19,9 @@ export const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/connect-ai" element={<McpDocsPage />} />
+            <Route path="/mcp-docs" element={<McpDocsPage />} />
+            <Route path="/share" element={<SharePage />} />
             <Route
               path="/dashboard"
               element={

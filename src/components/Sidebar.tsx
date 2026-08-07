@@ -133,7 +133,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           className="w-full p-2.5 rounded-neu-card flex items-center space-x-2.5 text-xs font-bold text-[#6C63FF] neu-raised hover:bg-[#6C63FF]/5 transition-all"
         >
           <Bot className="w-4 h-4 text-[#6C63FF]" />
-          <span>Connect AI (MCP Docs)</span>
+          <span>Connect AI</span>
         </button>
       </div>
 
