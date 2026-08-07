@@ -48,6 +48,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     setNotificationPerm(getNotificationPermission());
+
+    // Auto-prompt for notification permission on first visit
+    if (isNotificationSupported() && getNotificationPermission() === 'default') {
+      const autoPromptKey = 'task_buddy_notif_auto_prompted';
+      if (!localStorage.getItem(autoPromptKey)) {
+        // Small delay so the page loads first
+        const timer = setTimeout(async () => {
+          const granted = await requestNotificationPermission();
+          setNotificationPerm(getNotificationPermission());
+          localStorage.setItem(autoPromptKey, 'true');
+          if (granted) {
+            sendPushNotification('🎉 Reminders Enabled!', {
+              body: 'Task Buddy will alert you about upcoming deadlines.',
+            });
+          }
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
   }, []);
 
   // Periodic deadline checks for push notifications (every 1 minute)

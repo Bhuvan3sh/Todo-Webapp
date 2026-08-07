@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/app_provider.dart';
-import '../services/push_notification_service.dart';
+import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/connect_ai_modal.dart';
 import '../widgets/neumorphic_card.dart';
@@ -201,7 +201,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 2. Sync Push Notification Test Option
             NeumorphicCard(
               onTap: () async {
-                await PushNotificationService.sendTestNotification();
+                await LocalNotificationService.sendTestNotification();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

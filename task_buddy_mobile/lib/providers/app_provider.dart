@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/todo_models.dart';
-import '../services/push_notification_service.dart';
+import '../services/local_notification_service.dart';
 
 enum ViewMode { today, upcoming, list }
 
@@ -150,6 +150,11 @@ class AppProvider extends ChangeNotifier {
       // Persist to disk cache
       _saveToCache();
 
+      // Start periodic deadline notification checks (every 60s)
+      if (_notificationsEnabled) {
+        LocalNotificationService.startPeriodicChecks(() => _tasks);
+      }
+
       // Setup real-time listener for instant zero-lag updates
       _setupRealtimeListeners(user.id);
     } catch (e) {
@@ -203,6 +208,11 @@ class AppProvider extends ChangeNotifier {
 
   void toggleNotifications(bool enabled) {
     _notificationsEnabled = enabled;
+    if (enabled) {
+      LocalNotificationService.startPeriodicChecks(() => _tasks);
+    } else {
+      LocalNotificationService.stopPeriodicChecks();
+    }
     notifyListeners();
   }
 
@@ -264,7 +274,8 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_notificationsEnabled) {
-      PushNotificationService.showLocalNotification(
+      LocalNotificationService.show(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         title: 'Task Created: $title',
         body: priority == 'high' ? 'High priority task added!' : 'Task added to your list.',
       );
@@ -360,6 +371,7 @@ class AppProvider extends ChangeNotifier {
   void dispose() {
     _tasksSubscription?.cancel();
     _listsSubscription?.cancel();
+    LocalNotificationService.stopPeriodicChecks();
     super.dispose();
   }
 }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'providers/app_provider.dart';
-import 'services/push_notification_service.dart';
+import 'services/local_notification_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 
@@ -29,12 +28,11 @@ void main() async {
     print('Supabase init notice: $e');
   }
 
-  // Initialize Firebase Cloud Messaging for Push Notifications
+  // Initialize Local Notification Service (no Firebase required)
   try {
-    await Firebase.initializeApp();
-    await PushNotificationService.initialize();
+    await LocalNotificationService.initialize();
   } catch (e) {
-    print('Firebase FCM init notice: $e');
+    print('Local notification init notice: $e');
   }
 
   runApp(const TaskBuddyApp());
